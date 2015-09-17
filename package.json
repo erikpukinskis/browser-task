@@ -1,0 +1,24 @@
+{
+  "name": "nrtv-minions",
+  "version": "0.0.0",
+  "description": "Do stuff in other peoples' browsers",
+  "main": "minions.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erikpukinskis/nrtv-minions.git"
+  },
+  "dependencies": {
+    "nrtv-library": "*",
+    "nrtv-element": "*",
+    "nrtv-browser-bridge": "*",
+    "nrtv-server": "*",
+    "nrtv-socket": "*"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "nrtv-server": "*"
+  },
+  "license": "ISC"
+}
