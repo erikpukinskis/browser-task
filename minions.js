@@ -3,64 +3,86 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minions",
-  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server", "nrtv-socket"],
-  function(element, BrowserBridge, Server, Socket) {
+  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server", "nrtv-single-use-socket"],
+  function(element, bridge, server, SingleUseSocket) {
 
     function MinionQueue() {
       var tasks = this.tasks = {}
 
-      var commands = new Socket("commands")
-
-      var callbacks = new Socket("callbacks")
-
-      callbacks.subscribe(
-        function(data) {
-          console.log("a minion said", JSON.stringify(data), "!")
-        }
-      )
+      var connected = {}
 
       var iframe = element("iframe.sansa")
 
-      var notifyServerWeAreDone = callbacks.definePublishOnClient()
+      var notifyServerWeAreDone = bridge.defineFunction(function done() {
+        console.log("notif!")
+      })
 
-      var runCommand = BrowserBridge.defineOnClient(
-        [notifyServerWeAreDone],
-        function(command) {
+      var sockets = {}
 
-          document.querySelector(command.target).click()
+      SingleUseSocket.getReady()
 
-          notify({
-            commandId: command.id
-          })
+      var giveMinionWork = bridge.defineFunction(
+        [],
+        function giveMinionWork(source) {
+
+          var iframe = document.querySelector(".sansa")
+
+          var minion = {
+            browse: function(url, callback) {
+              iframe.src = url
+              iframe.onload = callback
+            },
+            press: function(selector) {
+              var element = iframe.contentDocument.querySelector(selector)
+              element.click()
+            },
+            report: function(data) {
+              console.log("reporting", data)
+            }
+          }      
+
+          var func = eval("f="+source)
+
+          func(minion, iframe)
 
         }
       )
 
-      callbacks.subscribe(
-        function(data) {
-          console.log(data.id, "finished")
-        }
-      )
-
-      var subscribe = commands.defineSubscribeOnClient()
-
-      var b = subscribe.withArgs(runCommand)
-
-      BrowserBridge.asap(b)
-
-      Server.get("/",
+      server.get("/minions",
         function(request, response) {
-          BrowserBridge.sendPage([
+
+          var socket = new SingleUseSocket()
+
+          sockets[socket.identifier] = socket
+
+          var acceptWorkMinion = socket
+            .defineListenInBrowser()
+            .withArgs(giveMinionWork)
+
+          var requestWorkMinion = socket.defineSendInBrowser()
+
+          bridge.asap(acceptWorkMinion)
+          bridge.asap(requestWorkMinion)
+
+          socket.listen(
+            function() {
+              var ids = Object.keys(tasks)
+              var jobCount = ids.length
+
+              if (jobCount > 0) {
+                var id = ids.pop()
+                socket.send(tasks[id])
+              }
+            }
+          )
+
+          bridge.sendPage([
             buildTaskButtons(), iframe
           ])(request, response)
         }
       )
 
-      Server.post("/commands",
-        function(request, response) {
-        }
-      )
-
+      
       function buildTaskButtons() {
         var taskButtons = []
         for (name in tasks) {
@@ -71,12 +93,12 @@ module.exports = library.export(
       }
 
       function taskButton(func, name) {
-        var binding = BrowserBridge.defineOnClient(func)
+        var binding = bridge.defineFunction(func)
 
         var button = element(
           "button",
           {
-            onclick: run.withArgs(binding).evalable()
+            onclick: giveMinionWork.withArgs(binding).evalable()
           },
           element.raw(name)
         )
@@ -84,25 +106,6 @@ module.exports = library.export(
         return button
       }
 
-      var publish = callbacks.definePublishOnClient()
-
-      var run = BrowserBridge.defineOnClient(
-        [publish],
-        function run(publish, func) {
-          var iframe = document.querySelector(".sansa")
-
-          var minion = {
-            browse: function(url) {
-              iframe.src = url
-            },
-            report: function(data) {
-              publish(data)
-            }
-          }      
-
-          func(minion, iframe)
-        }
-      )
     }
 
     MinionQueue.prototype.addTask =

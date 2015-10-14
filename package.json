@@ -12,13 +12,14 @@
     "nrtv-element": "*",
     "nrtv-browser-bridge": "*",
     "nrtv-server": "*",
-    "nrtv-socket": "*"
+    "nrtv-single-use-socket": "*"
   },
   "scripts": {
     "test": "node test.js"
   },
   "devDependencies": {
-    "nrtv-server": "*"
+    "nrtv-test": "*",
+    "nrtv-element-server": "*"
   },
   "license": "ISC"
 }

@@ -1,30 +1,47 @@
-var library = require("nrtv-library")(require)
+var test = require("nrtv-test")(require)
 
-library.test(
+test.library.define(
+  "button-server",
+  ["nrtv-element", "nrtv-browser-bridge", "nrtv-element-server"],
+  function(element, bridge, server) {
+
+    var ahey = bridge.defineFunction(
+      function() {
+        document.querySelector("body").innerHTML = "a hey ahoy!"
+      }
+    )
+    var butt = element(
+      "button.hai",
+      {onclick: ahey.evalable()},
+      "O hai"
+    )
+
+    server.serve(butt)
+
+    return server
+  }
+)
+
+test.using(
   "starts",
-  ["./minions", "nrtv-server"],
-  function(expect, done, MinionQueue, server) {
+  ["./minions", "button-server"],
+  function(expect, done, MinionQueue, buttonServer) {
 
     var queue = new MinionQueue()
 
-    server.start(8888)
+    buttonServer.start(8888)
 
     queue.addTask("blah",
-      function(minion, iframe) {
-        minion.browse("/blah")
-        minion.report(iframe.contentDocument.querySelector("body").innerHTML)
+      function doSomeFunStuff(minion, iframe) {
+        minion.browse("/", function() {
+          minion.press(".hai")
+          minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
+        })
       }
     )
 
-    // And here's our test server the minion is going to hit:
-
-    server.get("/blah",
-      function(x, response) {
-        response.send("booga")
-      }
-    )
-
+    return done()
     done()
-    server.stop()
+    buttonServer.stop()
   }
 )
