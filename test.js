@@ -23,7 +23,7 @@ test.library.define(
 )
 
 test.using(
-  "starts",
+  "a minion presses a button and reports back what happened",
   ["./minions", "button-server"],
   function(expect, done, MinionQueue, buttonServer) {
 
@@ -37,11 +37,15 @@ test.using(
           minion.press(".hai")
           minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
         })
+      }, function report(message) {
+        expect(message).to.equal("a hey ahoy!")
+        done()
+        buttonServer.stop()
       }
     )
 
-    return done()
-    done()
-    buttonServer.stop()
+    console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:8888/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")
+
+    done.failAfter(10000)
   }
 )

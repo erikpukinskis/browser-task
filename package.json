@@ -15,7 +15,7 @@
     "nrtv-single-use-socket": "*"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "node --harmony test.js"
   },
   "devDependencies": {
     "nrtv-test": "*",

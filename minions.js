@@ -3,27 +3,95 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minions",
-  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server", "nrtv-single-use-socket"],
-  function(element, bridge, server, SingleUseSocket) {
+  ["nrtv-browser-bridge", "nrtv-server", "nrtv-single-use-socket"],
+  function(bridge, server, SingleUseSocket) {
 
     function MinionQueue() {
-      var tasks = this.tasks = {}
-
-      var connected = {}
-
-      var iframe = element("iframe.sansa")
-
-      var notifyServerWeAreDone = bridge.defineFunction(function done() {
-        console.log("notif!")
-      })
-
-      var sockets = {}
+      this.tasks = {}
+      this.sockets = {}
 
       SingleUseSocket.getReady()
 
+      server.get(
+        "/minions",
+        this.sendPage.bind(this)
+      )
+    }
+
+    MinionQueue.prototype.sendPage =
+      function(request, response) {
+
+      library.using(
+        ["nrtv-single-use-socket",library.reset("nrtv-browser-bridge"), "minion-client"],
+        makeSocketAndSendPage.bind(this)
+      )
+
+      function makeSocketAndSendPage(SingleUseSocket, bridge, buildClient) {
+
+        var socket = new SingleUseSocket()
+
+        var tasks = this.tasks
+
+        this.sockets[socket.identifier] = socket
+
+        socket.listen(
+          function(message) {
+            if (message == "can i haz work?") {
+              sendAJob()
+            } else {
+              socket.assignedTask.report(message)
+            }
+          }
+        )
+
+        function sendAJob() {
+          var ids = Object.keys(tasks)
+          var jobCount = ids.length
+
+          if (jobCount > 0) {
+            var id = ids.pop()
+            socket.send(tasks[id].func)
+            socket.assignedTask = tasks[id]
+          } else {
+            throw Error("no jobs!")
+          }
+        }
+
+        bridge.sendPage(
+          buildClient(socket, this.tasks)
+        )(request, response)
+
+      }
+    }
+
+
+    MinionQueue.prototype.addTask =
+      function(name, func, report) {
+        this.tasks[name] = new MinionTask(name, func, report)
+      }
+
+    return MinionQueue
+  }
+)
+
+function MinionTask(name, func, report) {
+  this.name = name
+  this.func = func
+  this.report = report
+}
+
+
+
+library.define(
+  "minion-client",
+  ["nrtv-browser-bridge", "nrtv-element"],
+  function(bridge, element) {
+
+    return function(socket, tasks) {
+
       var giveMinionWork = bridge.defineFunction(
-        [],
-        function giveMinionWork(source) {
+        [socket.defineSendInBrowser()],
+        function giveMinionWork(sendSocketMessage, source) {
 
           var iframe = document.querySelector(".sansa")
 
@@ -36,61 +104,16 @@ module.exports = library.export(
               var element = iframe.contentDocument.querySelector(selector)
               element.click()
             },
-            report: function(data) {
-              console.log("reporting", data)
+            report: function(message) {
+              sendSocketMessage(message)
             }
           }      
 
           var func = eval("f="+source)
 
           func(minion, iframe)
-
         }
       )
-
-      server.get("/minions",
-        function(request, response) {
-
-          var socket = new SingleUseSocket()
-
-          sockets[socket.identifier] = socket
-
-          var acceptWorkMinion = socket
-            .defineListenInBrowser()
-            .withArgs(giveMinionWork)
-
-          var requestWorkMinion = socket.defineSendInBrowser()
-
-          bridge.asap(acceptWorkMinion)
-          bridge.asap(requestWorkMinion)
-
-          socket.listen(
-            function() {
-              var ids = Object.keys(tasks)
-              var jobCount = ids.length
-
-              if (jobCount > 0) {
-                var id = ids.pop()
-                socket.send(tasks[id])
-              }
-            }
-          )
-
-          bridge.sendPage([
-            buildTaskButtons(), iframe
-          ])(request, response)
-        }
-      )
-
-      
-      function buildTaskButtons() {
-        var taskButtons = []
-        for (name in tasks) {
-          taskButtons.push(taskButton(tasks[name], name))
-        }
-
-        return taskButtons
-      }
 
       function taskButton(func, name) {
         var binding = bridge.defineFunction(func)
@@ -106,13 +129,23 @@ module.exports = library.export(
         return button
       }
 
-    }
+      var iframe = element("iframe.sansa")
 
-    MinionQueue.prototype.addTask =
-      function(name, func) {
-        this.tasks[name] = func
+      var acceptWorkMinion = socket
+        .defineListenInBrowser()
+        .withArgs(giveMinionWork)
+
+      var requestWorkMinion = socket.defineSendInBrowser().withArgs("can i haz work?")
+
+      bridge.asap(acceptWorkMinion)
+      bridge.asap(requestWorkMinion)
+
+      var taskButtons = []
+      for (name in tasks) {
+        taskButtons.push(taskButton(tasks[name].func, name))
       }
 
-    return MinionQueue
+      return [taskButtons, iframe]
+    }
   }
 )
