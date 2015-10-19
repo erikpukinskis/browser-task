@@ -1,4 +1,13 @@
 var test = require("nrtv-test")(require)
+var library = test.library
+
+test.only("controlling minions through the API")
+// test.only("a minion presses a button and reports back what happened")
+
+function halp(port, done) {
+  done.failAfter(10000)
+  console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
+}
 
 test.library.define(
   "button-server",
@@ -25,9 +34,9 @@ test.library.define(
 test.using(
   "a minion presses a button and reports back what happened",
   ["./minions", "button-server"],
-  function(expect, done, MinionQueue, buttonServer) {
+  function(expect, done, minion, buttonServer) {
 
-    var queue = new MinionQueue()
+    var queue = new minion.queue()
 
     buttonServer.start(8888)
 
@@ -52,8 +61,38 @@ test.using(
       ["hi"]
     )
 
-    console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:8888/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")
+    halp(8888, done)
+  }
+)
 
-    done.failAfter(10000)
+test.using(
+  "controlling minions through the API",
+  ["./minions", ],
+  function(expect, done, minions) {
+
+    var appServer
+
+    library.using(
+      ["button-server", library.reset("nrtv-server")],
+      function(bs, server) {
+        bs.start(9100)
+        appServer = server
+      }
+    )
+
+    minions.delegator.start()
+
+    minions.api.addTask(
+      function(minion) {
+        minion.report("IT IS A VERY PRETTY DAY!")
+      }, function(message) {
+        expect(message).to.equal("IT IS A VERY PRETTY DAY!")
+        minions.delegator.stop()
+        done()
+        appServer.stop()
+      }
+    )
+
+    halp(minions.delegator.getPort(), done)
   }
 )

@@ -12,7 +12,8 @@
     "nrtv-element": "*",
     "nrtv-browser-bridge": "*",
     "nrtv-server": "*",
-    "nrtv-single-use-socket": "*"
+    "nrtv-single-use-socket": "*",
+    "request": "*"
   },
   "scripts": {
     "test": "node --harmony test.js"

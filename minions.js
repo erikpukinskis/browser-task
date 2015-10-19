@@ -1,8 +1,7 @@
 var library = require("nrtv-library")(require)
 
-
-module.exports = library.export(
-  "minions",
+library.define(
+  "minion-queue",
   ["nrtv-browser-bridge", "nrtv-server", "nrtv-single-use-socket"],
   function(bridge, server, SingleUseSocket) {
 
@@ -14,11 +13,11 @@ module.exports = library.export(
 
       server.get(
         "/minions",
-        this.sendPage.bind(this)
+        this._sendPage.bind(this)
       )
     }
 
-    MinionQueue.prototype.sendPage =
+    MinionQueue.prototype._sendPage =
       function(request, response) {
 
       library.using(
@@ -51,9 +50,12 @@ module.exports = library.export(
           if (jobCount > 0) {
             var id = ids.pop()
             var task = tasks[id]
+
+            var source = task.funcSource || task.func.toString()
+
             socket.send(
               JSON.stringify({
-                source: task.func.toString(),
+                source: source,
                 args: task.args || []
               })
             )
@@ -71,38 +73,95 @@ module.exports = library.export(
       }
     }
 
-    function argsToTask(args) {
-      for(var i=0; i<args.length; i++) {
-        var arg = args[i]
-
-        if (typeof arg == "function" && !func) {
-          var func = arg
-        } else if (typeof arg == "function") {
-          var report = arg
-        } else if (typeof arg == "string") {
-          var name = arg
-        } else if (Array.isArray(arg)) {
-          var args = arg
-        } else {
-          throw new Error("Passed "+arg+" to minions.addTask, but we don't know what to do with that. You can provide a function with the work to do, an optional second function to report back to, a name, and an array of arguments to pass to the minion.")
-        }
-      }
-
-      return {
-        func: func,
-        report: report,
-        name: name,
-        args: args
-      }
-    }
-
     MinionQueue.prototype.addTask =
       function() {
-
         this.tasks[name] = argsToTask(arguments)
       }
 
     return MinionQueue
+  }
+)
+
+
+library.define(
+  "minion-delegator",
+  function() {
+    function resetAndStart() {
+      library.using(
+        ["minion-queue", library.reset("nrtv-server")],
+        start
+      )
+    }
+
+    var startedServer
+
+    function start(MinionQueue, server) {
+
+      var queue = new MinionQueue()
+
+      server.post("/tasks",
+        function(request, response) {
+          var task = request.body
+          task.report = function(message) {
+            response.send(message)
+          }
+          queue.addTask(task)
+        }
+      )
+
+      server.start(9777)
+
+      startedServer = server
+    }
+
+    function stop() {
+      startedServer.stop()
+    }
+
+    return {
+      start: resetAndStart,
+      stop: stop,
+      getPort: function() {
+        return 9777
+      }
+    }
+  }
+)
+
+
+library.define(
+  "minion-api-client",
+  ["request"],
+  function(request) {
+
+    function addTask() {
+      var task = argsToTask(arguments)
+
+      var data = {
+        funcSource: task.func.toString()
+      }
+      if (task.args) {
+        data.args = args
+      }
+      var body = JSON.stringify(data)
+
+      request.post({
+        url: "http://localhost:9777/tasks",
+        method: "POST",
+        json: true,
+        headers: {"content-type": "application/json"},
+        body: data
+      }, function(error, response) {
+        if (error) { throw error }
+        if (task.report) {
+          task.report(response.body)
+        }
+      })
+    }
+
+    return {
+      addTask: addTask
+    }
   }
 )
 
@@ -157,6 +216,49 @@ library.define(
       bridge.asap(requestWorkMinion)
 
       return iframe
+    }
+  }
+)
+
+
+function argsToTask(args) {
+  if (typeof args[0] == "object") {
+    return args[0]
+  }
+
+  for(var i=0; i<args.length; i++) {
+    var arg = args[i]
+
+    if (typeof arg == "function" && !func) {
+      var func = arg
+    } else if (typeof arg == "function") {
+      var report = arg
+    } else if (typeof arg == "string") {
+      var name = arg
+    } else if (Array.isArray(arg)) {
+      var taskArgs = arg
+    } else {
+      throw new Error("Passed "+arg+" to minions.addTask, but we don't know what to do with that. You can provide a function with the work to do, an optional second function to report back to, a name, and an array of arguments to pass to the minion.")
+    }
+  }
+
+  return {
+    func: func,
+    report: report,
+    name: name,
+    args: taskArgs
+  }
+}
+
+
+module.exports = library.export(
+  "minions",
+  ["minion-queue", "minion-delegator", "minion-api-client"],
+  function(queue, delegator, api) {
+    return {
+      queue: queue,
+      delegator: delegator,
+      api: api
     }
   }
 )
