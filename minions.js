@@ -50,8 +50,15 @@ module.exports = library.export(
 
           if (jobCount > 0) {
             var id = ids.pop()
-            socket.send(tasks[id].func)
-            socket.assignedTask = tasks[id]
+            var task = tasks[id]
+            socket.send(
+              JSON.stringify({
+                source: task.func.toString(),
+                args: task.args || []
+              })
+            )
+
+            socket.assignedTask = task
           } else {
             throw Error("no jobs!")
           }
@@ -64,22 +71,40 @@ module.exports = library.export(
       }
     }
 
+    function argsToTask(args) {
+      for(var i=0; i<args.length; i++) {
+        var arg = args[i]
+
+        if (typeof arg == "function" && !func) {
+          var func = arg
+        } else if (typeof arg == "function") {
+          var report = arg
+        } else if (typeof arg == "string") {
+          var name = arg
+        } else if (Array.isArray(arg)) {
+          var args = arg
+        } else {
+          throw new Error("Passed "+arg+" to minions.addTask, but we don't know what to do with that. You can provide a function with the work to do, an optional second function to report back to, a name, and an array of arguments to pass to the minion.")
+        }
+      }
+
+      return {
+        func: func,
+        report: report,
+        name: name,
+        args: args
+      }
+    }
 
     MinionQueue.prototype.addTask =
-      function(name, func, report) {
-        this.tasks[name] = new MinionTask(name, func, report)
+      function() {
+
+        this.tasks[name] = argsToTask(arguments)
       }
 
     return MinionQueue
   }
 )
-
-function MinionTask(name, func, report) {
-  this.name = name
-  this.func = func
-  this.report = report
-}
-
 
 
 library.define(
@@ -91,7 +116,9 @@ library.define(
 
       var giveMinionWork = bridge.defineFunction(
         [socket.defineSendInBrowser()],
-        function giveMinionWork(sendSocketMessage, source) {
+        function giveMinionWork(sendSocketMessage, data) {
+
+          data = JSON.parse(data)
 
           var iframe = document.querySelector(".sansa")
 
@@ -109,25 +136,14 @@ library.define(
             }
           }      
 
-          var func = eval("f="+source)
+          var func = eval("f="+data.source)
 
-          func(minion, iframe)
+          data.args.push(minion)
+          data.args.push(iframe)
+
+          func.apply(null, data.args)
         }
       )
-
-      function taskButton(func, name) {
-        var binding = bridge.defineFunction(func)
-
-        var button = element(
-          "button",
-          {
-            onclick: giveMinionWork.withArgs(binding).evalable()
-          },
-          element.raw(name)
-        )
-
-        return button
-      }
 
       var iframe = element("iframe.sansa")
 
@@ -140,12 +156,7 @@ library.define(
       bridge.asap(acceptWorkMinion)
       bridge.asap(requestWorkMinion)
 
-      var taskButtons = []
-      for (name in tasks) {
-        taskButtons.push(taskButton(tasks[name].func, name))
-      }
-
-      return [taskButtons, iframe]
+      return iframe
     }
   }
 )

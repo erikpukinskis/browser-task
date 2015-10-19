@@ -31,17 +31,25 @@ test.using(
 
     buttonServer.start(8888)
 
-    queue.addTask("blah",
-      function doSomeFunStuff(minion, iframe) {
+    queue.addTask(
+      "blah",
+      function doSomeFunStuff(testVariable, minion, iframe) {
+
+        if (testVariable != "hi") {
+          throw new Error("Minion didn't get data!")
+        }
+
         minion.browse("/", function() {
           minion.press(".hai")
           minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
         })
-      }, function report(message) {
+      },
+      function report(message) {
         expect(message).to.equal("a hey ahoy!")
         done()
         buttonServer.stop()
-      }
+      },
+      ["hi"]
     )
 
     console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:8888/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")
