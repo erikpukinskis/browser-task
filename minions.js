@@ -29,49 +29,55 @@ library.define(
 
         var socket = new SingleUseSocket()
 
-        var tasks = this.tasks
-
         this.sockets[socket.identifier] = socket
+
+        var _this = this
 
         socket.listen(
           function(message) {
             if (message == "can i haz work?") {
-              sendAJob()
+              _this._requestWork(sendAJob)
             } else {
               socket.assignedTask.report(message)
             }
           }
         )
 
-        function sendAJob() {
-          var ids = Object.keys(tasks)
-          var jobCount = ids.length
+        var _this = this
 
-          if (jobCount > 0) {
-            var id = ids.pop()
-            var task = tasks[id]
+        function sendAJob(task) {
 
-            var source = task.funcSource || task.func.toString()
+          var source = task.funcSource || task.func.toString()
 
-            socket.send(
-              JSON.stringify({
-                source: source,
-                args: task.args || []
-              })
-            )
+          socket.send(
+            JSON.stringify({
+              source: source,
+              args: task.args || []
+            })
+          )
 
-            socket.assignedTask = task
-          } else {
-            throw Error("no jobs!")
-          }
+          socket.assignedTask = task
+
         }
 
         bridge.sendPage(
-          buildClient(socket, this.tasks)
+          buildClient(socket)
         )(request, response)
 
       }
     }
+
+    MinionQueue.prototype._requestWork =
+      function(callback) {
+        var ids = Object.keys(this.tasks)
+        var jobCount = ids.length
+
+        if (jobCount > 0) {
+          var id = ids.pop()
+          var task = this.tasks[id]
+          callback(task)
+        }
+      }
 
     MinionQueue.prototype.addTask =
       function() {
@@ -171,7 +177,7 @@ library.define(
   ["nrtv-browser-bridge", "nrtv-element"],
   function(bridge, element) {
 
-    return function(socket, tasks) {
+    return function(socket) {
 
       var giveMinionWork = bridge.defineFunction(
         [socket.defineSendInBrowser()],
