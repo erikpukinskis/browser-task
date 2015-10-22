@@ -2,7 +2,8 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "nrtv-minion-queue",
-  function() {
+  [library.collective({})],
+  function(collective) {
     function MinionQueue() {
       this.tasks = []
       this.workers = []
@@ -10,11 +11,21 @@ module.exports = library.export(
     }
 
     MinionQueue.prototype.addTask =
-      function(func, callback) {
-        this.tasks.push({
-          func: func,
-          callback: callback
-        })
+      function() {
+        var task = {}
+
+        for(var i=0; i<arguments.length; i++) {
+          var arg = arguments[i]
+          var isFunction = typeof arg == "function"
+          if (isFunction && !task.func) {
+            task.func = arg
+          } else if (isFunction) {
+            task.callback = arg
+          } else if (Array.isArray(arg)) {
+            task.args = arg
+          }
+        }
+        this.tasks.push(task)
         this.work()
       }
 
@@ -29,7 +40,7 @@ module.exports = library.export(
     }
 
     MinionQueue.prototype.requestWork =
-      function(callback, format) {
+      function(callback) {
         this.workers.push(callback)
         this.work()
         var workers = this.workers
@@ -68,7 +79,7 @@ module.exports = library.export(
         var func = task.func
         var callback = task.callback
 
-        worker(func, function(message) {
+        function report(_this, worker, message) {
           callback(message)
 
           if (!worker.__nrtvMinionQuit) {
@@ -76,10 +87,23 @@ module.exports = library.export(
           }
 
           _this._work()
-        })
+        }
+
+
+        var startOver = report.bind(null, _this, worker)
+
+        var args = [startOver].concat(task.args)
+
+        func.apply(null, args)
 
         this._work()
       }
+
+    library.collectivize(
+      MinionQueue,
+      collective,
+      ["addTask", "requestWork"]
+    )
 
     return MinionQueue
   }

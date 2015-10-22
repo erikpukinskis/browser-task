@@ -1,5 +1,7 @@
 var test = require("nrtv-test")(require)
 
+// test.only("pass args on")
+
 test.using(
   "adding tasks while multiple minions do work",
   ["../queue"],
@@ -85,5 +87,32 @@ test.using(
     done.ish("world doesn't explode if the worker queue dries up")
 
     done()
+  }
+)
+
+test.using(
+  "pass args on",
+  ["../queue"],
+  function(expect, done, queue) {
+
+    debugger
+    queue.addTask(
+      function takeCredit(report, who) {
+        report(who+" did this.")
+      },
+      ["Brett"],
+      function(message) {
+        expect(message).to.equal(
+          "Brett did this.")
+        done()
+      }
+    )
+
+    queue.requestWork(function(job, report, args) {
+      if (args != "Brett") {
+        throw new Error("Who are you and what have you done with Brett!")
+      }
+      job(report)
+    })
   }
 )
