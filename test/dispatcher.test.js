@@ -1,13 +1,11 @@
 var test = require("nrtv-test")(require)
 
-// test.only("pass args on")
-
 test.using(
   "adding tasks while multiple minions do work",
-  ["../queue"],
-  function(expect, done, MinionQueue) {
+  ["../dispatcher"],
+  function(expect, done, Dispatcher) {
 
-    var queue = new MinionQueue()
+    var queue = new Dispatcher()
 
     var results = []
 
@@ -92,7 +90,7 @@ test.using(
 
 test.using(
   "pass args on",
-  ["../queue"],
+  ["../dispatcher"],
   function(expect, done, queue) {
 
     queue.addTask(

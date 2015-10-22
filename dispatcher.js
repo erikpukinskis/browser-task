@@ -1,16 +1,16 @@
 var library = require("nrtv-library")(require)
 
 module.exports = library.export(
-  "nrtv-minion-queue",
+  "dispatcher",
   [library.collective({})],
   function(collective) {
-    function MinionQueue() {
+    function Dispatcher() {
       this.tasks = []
       this.workers = []
       this.working = false
     }
 
-    MinionQueue.prototype.addTask =
+    Dispatcher.prototype.addTask =
       function() {
         var task = {}
 
@@ -42,7 +42,7 @@ module.exports = library.export(
       }
     }
 
-    MinionQueue.prototype.requestWork =
+    Dispatcher.prototype.requestWork =
       function(callback) {
         this.workers.push(callback)
         this.work()
@@ -57,13 +57,13 @@ module.exports = library.export(
         }
       }
 
-    MinionQueue.prototype.work =
+    Dispatcher.prototype.work =
       function() {
         if (this.working) { return }
         this._work()
       }
 
-    MinionQueue.prototype._work =
+    Dispatcher.prototype._work =
       function() {
         var noTasks = this.tasks.length < 1
         var noWorkers = this.workers.length < 1
@@ -105,11 +105,11 @@ module.exports = library.export(
       }
 
     library.collectivize(
-      MinionQueue,
+      Dispatcher,
       collective,
       ["addTask", "requestWork"]
     )
 
-    return MinionQueue
+    return Dispatcher
   }
 )
