@@ -17,12 +17,15 @@ module.exports = library.export(
         for(var i=0; i<arguments.length; i++) {
           var arg = arguments[i]
           var isFunction = typeof arg == "function"
+
           if (isFunction && !task.func) {
             task.func = arg
           } else if (isFunction) {
             task.callback = arg
           } else if (Array.isArray(arg)) {
             task.args = arg
+          } else {
+            throw Error()
           }
         }
         this.tasks.push(task)
@@ -57,7 +60,6 @@ module.exports = library.export(
     MinionQueue.prototype.work =
       function() {
         if (this.working) { return }
-        this.working = true
         this._work()
       }
 
@@ -69,32 +71,35 @@ module.exports = library.export(
         if (noTasks || noWorkers) {
           this.working = false
           return
+        } else {
+          this.working = true
         }
 
-        this.working = true
-        var _this = this
+        var queue = this
 
         var worker = this.workers.shift()
         var task = this.tasks.shift()
-        var func = task.func
+        var workToDo = task.func
         var callback = task.callback
 
-        function report(_this, worker, message) {
+
+        function checkForMore(queue, worker, message) {
           callback(message)
 
           if (!worker.__nrtvMinionQuit) {
-            _this.workers.push(worker)
+            queue.workers.push(worker)
           }
 
-          _this._work()
+          queue._work()
         }
 
-
-        var startOver = report.bind(null, _this, worker)
-
-        var args = [startOver].concat(task.args)
-
-        func.apply(null, args)
+        worker(
+          workToDo,
+          checkForMore.bind(
+            null, queue, worker
+          ),
+          task.args
+        )
 
         this._work()
       }

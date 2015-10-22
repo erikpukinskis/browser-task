@@ -95,7 +95,6 @@ test.using(
   ["../queue"],
   function(expect, done, queue) {
 
-    debugger
     queue.addTask(
       function takeCredit(report, who) {
         report(who+" did this.")
@@ -108,11 +107,14 @@ test.using(
       }
     )
 
-    queue.requestWork(function(job, report, args) {
-      if (args != "Brett") {
-        throw new Error("Who are you and what have you done with Brett!")
+    queue.requestWork(
+      function worker(job, report, args) {
+        if (args[0] != "Brett") {
+          throw new Error("Who are you and what have you done with Brett!")
+        }
+
+        job.apply(null, [report].concat(args))
       }
-      job(report)
-    })
+    )
   }
 )
