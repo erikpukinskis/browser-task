@@ -10,12 +10,12 @@ module.exports = library.export(
       this.working = false
     }
 
-    Dispatcher.prototype.addTask =
-      function() {
+    Dispatcher.buildTask =
+      function(args) {
         var task = {}
 
-        for(var i=0; i<arguments.length; i++) {
-          var arg = arguments[i]
+        for(var i=0; i<args.length; i++) {
+          var arg = args[i]
           var isFunction = typeof arg == "function"
 
           if (isFunction && !task.func) {
@@ -25,9 +25,15 @@ module.exports = library.export(
           } else if (Array.isArray(arg)) {
             task.args = arg
           } else {
-            throw Error()
+            throw Error("Not sure what to do with "+JSON.stringify(arg)+" in dispatcher.addTask. Expecting a function or two and optionally an array of arguments.")
           }
         }
+
+        return task
+      }
+    Dispatcher.prototype.addTask =
+      function() {
+        var task = Dispatcher.buildTask(arguments)
         this.tasks.push(task)
         this.work()
       }
