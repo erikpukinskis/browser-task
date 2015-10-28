@@ -19,8 +19,8 @@ module.exports = library.export(
         "/minions",
         function(request, response) {
 
-          library.using(["./portal"], 
-            function(portal) {
+          library.using(["./portal", library.reset("nrtv-browser-bridge")], 
+            function(portal, bridge) {
               portal(request, response, queue)
             }
           )

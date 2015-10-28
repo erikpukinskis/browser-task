@@ -5,9 +5,9 @@ module.exports = library.export(
   [
     "nrtv-single-use-socket",
     "nrtv-browser-bridge",
-    "./client"
+    "nrtv-element"
   ],
-  function(SingleUseSocket, bridge, buildClient) {
+  function(SingleUseSocket, bridge, element) {
 
     function handleRequest(request, response, queue) {
 
@@ -41,9 +41,49 @@ module.exports = library.export(
         socket.assignedTask = task
       }
 
-      bridge.sendPage(
-        buildClient(socket)
-      )(request, response)
+      var giveMinionWork = bridge.defineFunction(
+        [socket.defineSendInBrowser()],
+        function giveMinionWork(sendSocketMessage, data) {
+
+          data = JSON.parse(data)
+
+          var iframe = document.querySelector(".sansa")
+
+          var minion = {
+            browse: function(url, callback) {
+              iframe.src = url
+              iframe.onload = callback
+            },
+            press: function(selector) {
+              var element = iframe.contentDocument.querySelector(selector)
+              element.click()
+            },
+            report: function(message) {
+              sendSocketMessage(message)
+            }
+          }      
+
+          var func = eval("f="+data.source)
+
+          data.args.push(minion)
+          data.args.push(iframe)
+
+          func.apply(null, data.args)
+        }
+      )
+
+      var iframe = element("iframe.sansa")
+
+      var acceptWorkMinion = socket
+        .defineListenInBrowser()
+        .withArgs(giveMinionWork)
+
+      var requestWorkMinion = socket.defineSendInBrowser().withArgs("can i haz work?")
+
+      bridge.asap(acceptWorkMinion)
+      bridge.asap(requestWorkMinion)
+
+      bridge.sendPage(iframe)(request, response)
     }
 
     return handleRequest

@@ -1,8 +1,8 @@
 var test = require("nrtv-test")(require)
 var library = test.library
 
-test.only("controlling minions through the API")
-// test.only("a minion presses a button and reports back what happened")
+// test.only("controlling minions through the API")
+test.only("a minion presses a button and reports back what happened")
 
 function halp(port, done) {
   done.failAfter(10000)
