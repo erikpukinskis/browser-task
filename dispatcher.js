@@ -96,7 +96,6 @@ module.exports = library.export(
 
         function checkForMore(queue, worker, message) {
 
-          console.log("back from worker!", original.callback.toString())
           original.callback(message)
 
           if (!worker.__nrtvMinionQuit) {

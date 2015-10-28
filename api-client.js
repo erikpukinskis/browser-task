@@ -1,6 +1,6 @@
 var library = require("nrtv-library")(require)
 
-var exports = library.export(
+module.exports = library.export(
   "minion-api-client",
   ["request", "./dispatcher"],
   function(request, Dispatcher) {
@@ -24,9 +24,7 @@ var exports = library.export(
         body: data
       }, function(error, response) {
         if (error) { throw error }
-        if (task.report) {
-          task.report(response.body)
-        }
+        task.callback(response.body)
       })
     }
 

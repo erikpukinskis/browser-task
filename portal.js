@@ -1,17 +1,15 @@
 var library = require("nrtv-library")(require)
 
-var exports = library.export(
+module.exports = library.export(
   "minion-portal",
   [
     "nrtv-single-use-socket",
-    library.reset(
-      "nrtv-browser-bridge"
-    ),
-    "minion-client"
+    "nrtv-browser-bridge",
+    "./client"
   ],
   function(SingleUseSocket, bridge, buildClient) {
 
-    function handleRequest(request, response) {
+    function handleRequest(request, response, queue) {
 
       var socket = new SingleUseSocket()
 
@@ -20,19 +18,22 @@ var exports = library.export(
       socket.listen(
         function(message) {
           if (message == "can i haz work?") {
-            _this._requestWork(sendAJob)
+            queue.requestWork(sendAJob)
           } else {
-            socket.assignedTask.report(message)
+            socket.assignedTask.callback(message)
           }
         }
       )
 
       function sendAJob(task) {
-        var source = task.funcSource || task.func.toString()
+
+        if (!task.funcSource) {
+          task.funcSource = task.func.toString()
+        }
 
         socket.send(
           JSON.stringify({
-            source: source,
+            source: task.funcSource,
             args: task.args || []
           })
         )

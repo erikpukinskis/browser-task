@@ -1,6 +1,6 @@
 var library = require("nrtv-library")(require)
 
-var exports = library.export(
+module.exports = library.export(
   "minion-client",
   ["nrtv-browser-bridge", "nrtv-element"],
   function(bridge, element) {

@@ -1,48 +1,45 @@
 var library = require("nrtv-library")(require)
 
-var exports = library.export(
+module.exports = library.export(
   "minion-server",
-  function() {
-
-    SingleUseSocket.getReady()
-
-    function sendPortal(request, response) {
-      library.using(["minion-portal"], 
-        function(portal) {
-          portal(request, response)
-        }
-      )
-    }
-
-    server.get(
-      "/minions",
-      sendPortal
-    )
-
-    function resetAndStart() {
-      library.using(
-        ["minion-queue", library.reset("nrtv-server")],
-        start
-      )
-    }
+  ["nrtv-single-use-socket", "nrtv-server", "./dispatcher"],
+  function(SingleUseSocket, server, Dispatcher) {
 
     var startedServer
 
-    function start(MinionQueue, server) {
+    function start(port, queue) {
 
-      var queue = new MinionQueue()
+      if (!queue) {
+        queue = new Dispatcher()
+      }
+
+      SingleUseSocket.getReady()
+
+      server.get(
+        "/minions",
+        function(request, response) {
+
+          library.using(["./portal"], 
+            function(portal) {
+              portal(request, response, queue)
+            }
+          )
+
+        }
+      )
+
 
       server.post("/tasks",
         function(request, response) {
           var task = request.body
-          task.report = function(message) {
+          task.callback = function(message) {
             response.send(message)
           }
           queue.addTask(task)
         }
       )
 
-      server.start(9777)
+      server.start(port || 9777)
 
       startedServer = server
     }
@@ -52,10 +49,10 @@ var exports = library.export(
     }
 
     return {
-      start: resetAndStart,
+      start: start,
       stop: stop,
       getPort: function() {
-        return 9777
+        return startedServer.port
       }
     }
   }

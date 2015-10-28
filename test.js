@@ -36,14 +36,12 @@ test.using(
   ["./minions", "button-server"],
   function(expect, done, minion, buttonServer) {
 
-    var queue = new minion.queue()
+    var queue = new minion.dispatcher()
 
-    buttonServer.start(8888)
+    minion.server.start(8888, queue)
 
     queue.addTask(
-      "blah",
       function doSomeFunStuff(testVariable, minion, iframe) {
-
         if (testVariable != "hi") {
           throw new Error("Minion didn't get data!")
         }
@@ -80,19 +78,19 @@ test.using(
       }
     )
 
-    minions.delegator.start()
+    minions.server.start()
 
     minions.api.addTask(
       function(minion) {
         minion.report("IT IS A VERY PRETTY DAY!")
       }, function(message) {
         expect(message).to.equal("IT IS A VERY PRETTY DAY!")
-        minions.delegator.stop()
+        minions.server.stop()
         done()
         appServer.stop()
       }
     )
 
-    halp(minions.delegator.getPort(), done)
+    halp(minions.server.getPort(), done)
   }
 )
