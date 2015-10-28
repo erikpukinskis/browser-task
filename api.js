@@ -28,8 +28,22 @@ module.exports = library.export(
       })
     }
 
+    function installHandlers(server, queue) {
+
+      server.post("/tasks",
+        function(request, response) {
+          var task = request.body
+          task.callback = function(message) {
+            response.send(message)
+          }
+          queue.addTask(task)
+        }
+      )
+    }
+
     return {
-      addTask: addTask
+      addTask: addTask,
+      installHandlers: installHandlers
     }
   }
 )

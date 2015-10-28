@@ -2,8 +2,8 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "nrtv-server", "./dispatcher"],
-  function(SingleUseSocket, server, Dispatcher) {
+  ["nrtv-single-use-socket", "nrtv-server", "./dispatcher", "./api"],
+  function(SingleUseSocket, server, Dispatcher, api) {
 
     var startedServer
 
@@ -31,16 +31,7 @@ module.exports = library.export(
         }
       )
 
-
-      server.post("/tasks",
-        function(request, response) {
-          var task = request.body
-          task.callback = function(message) {
-            response.send(message)
-          }
-          queue.addTask(task)
-        }
-      )
+      api.installHandlers(server, queue)
 
       server.start(port || 9777)
 
