@@ -14,6 +14,9 @@ module.exports = library.export(
 
       var _this = this
 
+
+      // Requesting work
+
       socket.listen(
         function(message) {
           if (message == "can i haz work?") {
@@ -24,8 +27,14 @@ module.exports = library.export(
         }
       )
 
-      function sendAJob(task) {
+      bridge.asap(
+        socket.defineSendInBrowser().withArgs("can i haz work?")
+      )
 
+
+      // Sending work
+
+      function sendAJob(task) {
         if (!task.funcSource) {
           task.funcSource = task.func.toString()
         }
@@ -40,9 +49,9 @@ module.exports = library.export(
         socket.assignedTask = task
       }
 
-      var giveMinionWork = bridge.defineFunction(
+      var doWork = bridge.defineFunction(
         [socket.defineSendInBrowser()],
-        function giveMinionWork(sendSocketMessage, data) {
+        function doWork(sendSocketMessage, data) {
 
           data = JSON.parse(data)
 
@@ -71,18 +80,14 @@ module.exports = library.export(
         }
       )
 
-      var iframe = element("iframe.sansa")
-
-      var acceptWorkMinion = socket
+      bridge.asap(
+        socket
         .defineListenInBrowser()
-        .withArgs(giveMinionWork)
+        .withArgs(doWork)
+      )
 
-      var requestWorkMinion = socket.defineSendInBrowser().withArgs("can i haz work?")
 
-      bridge.asap(acceptWorkMinion)
-      bridge.asap(requestWorkMinion)
-
-      return iframe
+      return element("iframe.sansa")
     }
 
     return buildFrame
