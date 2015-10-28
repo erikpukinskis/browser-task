@@ -16,9 +16,9 @@ test.using(
     })
 
     var dougie = queue.requestWork(
-      function doug(job, report) {
-        job(function(message) {
-          report(message+" (via Doug)")
+      function doug(task) {
+        task.func(function(message) {
+          task.callback(message+" (via Doug)")
         })
       }
     )
@@ -27,9 +27,9 @@ test.using(
     done.ish("Doug got the first job")
 
     var barb = queue.requestWork(
-      function barbara(job, report) {
-        job(function(message) {
-          report(message+" (via Barbara)")
+      function barbara(task) {
+        task.func(function(message) {
+          task.callback(message+" (via Barbara)")
         })
       }
     )
@@ -44,9 +44,9 @@ test.using(
     done.ish("Doug got the next job too, since he finished his work before Barbara joined")
 
     var j = queue.requestWork(
-      function janet(job, report) {
-        job(function(message) {
-          report(message+" (via Janet)")
+      function janet(task) {
+        task.func(function(message) {
+          task.callback(message+" (via Janet)")
         })
       }
     )
@@ -94,8 +94,8 @@ test.using(
   function(expect, done, queue) {
 
     queue.addTask(
-      function takeCredit(report, who) {
-        report(who+" did this.")
+      function takeCredit(callback, who) {
+        callback(who+" did this.")
       },
       ["Brett"],
       function(message) {
@@ -106,12 +106,12 @@ test.using(
     )
 
     queue.requestWork(
-      function worker(job, report, args) {
-        if (args[0] != "Brett") {
+      function worker(task) {
+        if (task.args[0] != "Brett") {
           throw new Error("Who are you and what have you done with Brett!")
         }
 
-        job.apply(null, [report].concat(args))
+        task.func.apply(null, [task.callback].concat(task.args))
       }
     )
   }
