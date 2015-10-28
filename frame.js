@@ -1,15 +1,14 @@
 var library = require("nrtv-library")(require)
 
 module.exports = library.export(
-  "minion-portal",
+  "minion-frame",
   [
     "nrtv-single-use-socket",
-    "nrtv-browser-bridge",
     "nrtv-element"
   ],
-  function(SingleUseSocket, bridge, element) {
+  function(SingleUseSocket, element) {
 
-    function handleRequest(request, response, queue) {
+    function buildFrame(bridge, queue) {
 
       var socket = new SingleUseSocket()
 
@@ -83,9 +82,9 @@ module.exports = library.export(
       bridge.asap(acceptWorkMinion)
       bridge.asap(requestWorkMinion)
 
-      bridge.sendPage(iframe)(request, response)
+      return iframe
     }
 
-    return handleRequest
+    return buildFrame
   }
 )
