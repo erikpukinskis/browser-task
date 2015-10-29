@@ -1,8 +1,8 @@
 var test = require("nrtv-test")(require)
 var library = test.library
 
-// test.only("controlling minions through the API")
-test.only("a minion presses a button and reports back what happened")
+test.only("controlling minions through the API")
+// test.only("a minion presses a button and reports back what happened")
 
 test.library.define(
   "button-server",
@@ -76,10 +76,12 @@ test.using(
     minions.server.start()
 
     minions.api.addTask(
-      function(minion) {
-        minion.report("IT IS A VERY PRETTY DAY!")
-      }, function(message) {
-        expect(message).to.equal("IT IS A VERY PRETTY DAY!")
+      function(frameOfReference, minion, iframe) {
+        minion.report("IT IS A VERY PRETTY DAY " + frameOfReference + "!")
+      },
+      ["for Fred"],
+      function(message) {
+        expect(message).to.equal("IT IS A VERY PRETTY DAY for Fred!")
         minions.server.stop()
         done()
         appServer.stop()

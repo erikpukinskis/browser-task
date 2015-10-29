@@ -12,7 +12,7 @@ module.exports = library.export(
         funcSource: task.func.toString()
       }
       if (task.args) {
-        data.args = args
+        data.args = task.args
       }
       var body = JSON.stringify(data)
 
