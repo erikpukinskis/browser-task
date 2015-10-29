@@ -2,7 +2,7 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "nrtv-server", "./dispatcher", "./api"],
+  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api"],
   function(SingleUseSocket, server, Dispatcher, api) {
 
     var startedServer

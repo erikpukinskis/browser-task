@@ -2,11 +2,10 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minions",
-  ["./dispatcher", "./server", "./api"],
-  function(dispatcher, server, api) {
+  ["./server", "./api"],
+  function(server, api) {
 
     var minions = {
-      dispatcher: dispatcher,
       api: api,
       server: server,
       halp: halp

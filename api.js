@@ -2,7 +2,7 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-api-client",
-  ["request", "./dispatcher"],
+  ["request", "nrtv-dispatcher"],
   function(request, Dispatcher) {
 
     function addTask() {

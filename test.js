@@ -1,8 +1,8 @@
 var test = require("nrtv-test")(require)
 var library = test.library
 
-test.only("controlling minions through the API")
-// test.only("a minion presses a button and reports back what happened")
+// test.only("controlling minions through the API")
+test.only("a minion presses a button and reports back what happened")
 
 test.library.define(
   "button-server",
@@ -28,10 +28,10 @@ test.library.define(
 
 test.using(
   "a minion presses a button and reports back what happened",
-  ["./minions", "button-server"],
-  function(expect, done, minions, buttonServer) {
+  ["./minions", "button-server", "nrtv-dispatcher"],
+  function(expect, done, minions, buttonServer, Dispatcher) {
 
-    var queue = new minions.dispatcher()
+    var queue = new Dispatcher()
 
     minions.server.start(8888, queue)
 
