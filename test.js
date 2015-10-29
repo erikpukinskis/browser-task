@@ -4,11 +4,6 @@ var library = test.library
 test.only("controlling minions through the API")
 // test.only("a minion presses a button and reports back what happened")
 
-function halp(port, done) {
-  done.failAfter(10000)
-  console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
-}
-
 test.library.define(
   "button-server",
   ["nrtv-element", "nrtv-browser-bridge", "nrtv-element-server"],
@@ -34,11 +29,11 @@ test.library.define(
 test.using(
   "a minion presses a button and reports back what happened",
   ["./minions", "button-server"],
-  function(expect, done, minion, buttonServer) {
+  function(expect, done, minions, buttonServer) {
 
     var queue = new minion.dispatcher()
 
-    minion.server.start(8888, queue)
+    minions.server.start(8888, queue)
 
     queue.addTask(
       function doSomeFunStuff(testVariable, minion, iframe) {
@@ -59,7 +54,7 @@ test.using(
       ["hi"]
     )
 
-    halp(8888, done)
+    minions.halp(done)
   }
 )
 
@@ -91,6 +86,6 @@ test.using(
       }
     )
 
-    halp(minions.server.getPort(), done)
+    minions.halp(done)
   }
 )

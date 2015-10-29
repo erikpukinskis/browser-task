@@ -4,11 +4,21 @@ module.exports = library.export(
   "minions",
   ["./dispatcher", "./server", "./api"],
   function(dispatcher, server, api) {
-    return {
+
+    var minions = {
       dispatcher: dispatcher,
       api: api,
-      server: server
+      server: server,
+      halp: halp
     }
+
+    function halp(done) {
+      var port = minions.server.getPort()
+      done.failAfter(10000)
+      console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
+    }
+
+    return minions
   }
 )
 
