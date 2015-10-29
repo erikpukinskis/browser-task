@@ -6,6 +6,7 @@ module.exports = library.export(
   function(SingleUseSocket, server, Dispatcher, api) {
 
     var startedServer
+    var startedPort
 
     function start(port, queue) {
 
@@ -33,7 +34,9 @@ module.exports = library.export(
 
       api.installHandlers(server, queue)
 
-      server.start(port || 9777)
+      startedPort = port || 9777
+
+      server.start(startedPort)
 
       startedServer = server
     }
@@ -46,7 +49,7 @@ module.exports = library.export(
       start: start,
       stop: stop,
       getPort: function() {
-        return startedServer.port
+        return startedPort
       }
     }
   }
