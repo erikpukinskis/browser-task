@@ -7,24 +7,40 @@ module.exports = library.export(
 
     function addTask() {
       var task = Dispatcher.buildTask(arguments)
+      _addTask(task)
+    }
 
+    function _addTask(task, prefix) {
       var data = {
         funcSource: task.func.toString()
       }
       if (task.args) {
         data.args = task.args
       }
-      var body = JSON.stringify(data)
+
+      var url = "http://localhost:9777"+(prefix||"")+"/tasks"
+
+      post({
+        path: "/tasks",
+        prefix: prefix,
+        data: data
+      }, function(body) {
+        task.callback(body)
+      })
+    }
+
+    function post(options, callback) {
+      url = "http://localhost:9777"+(options.prefix||"")+options.path
 
       request.post({
-        url: "http://localhost:9777/tasks",
+        url: url,
         method: "POST",
         json: true,
         headers: {"content-type": "application/json"},
-        body: data
+        body: options.data
       }, function(error, response) {
         if (error) { throw error }
-        task.callback(response.body)
+        callback(response.body)
       })
     }
 
