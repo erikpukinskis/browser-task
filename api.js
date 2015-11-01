@@ -97,10 +97,6 @@ module.exports = library.export(
 
       request.post(parameters,
         function(error, response) {
-          var code = response.statusCode.toString()
-          var status = http.STATUS_CODES[response.statusCode]
-
-          console.log(code, status, "←", url)
 
           function fail(error) {
             var params = JSON.stringify(parameters, null, 2)
@@ -116,8 +112,15 @@ module.exports = library.export(
 
           if (error) {
             fail(error)
-          } else if (response.statusCode > 399) {
+          }
+
+          var code = response.statusCode.toString()
+          var status = http.STATUS_CODES[response.statusCode]
+
+          if (response.statusCode > 399) {
             fail(code+" "+status)
+          } else {
+            console.log(code, status, "←", url)
           }
 
           callback(response.body)
