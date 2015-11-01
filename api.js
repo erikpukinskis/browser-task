@@ -93,7 +93,13 @@ module.exports = library.export(
         body: options.data
       }
 
-      console.log("POST →", url, options.data || "")
+      if (options.data) {
+        var payload = JSON.stringify(options.data, null, 2)
+      } else {
+        payload = ""
+      }
+
+      console.log("POST →", url, payload)
 
       request.post(parameters,
         function(error, response) {
