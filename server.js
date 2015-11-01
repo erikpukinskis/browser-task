@@ -40,7 +40,7 @@ module.exports = library.export(
 
       startedServer = server
 
-      console.log("Visit http://localhost:9777 in a web browser to start working")
+      console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
     }
 
     function stop() {
