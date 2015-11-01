@@ -1,21 +1,47 @@
 Do stuff in other peoples' browsers.
 
-Here's a simple example.
+Start a server:
 
-library.using(
-  ["nrtv-minion", draw-something", "message", "nrtv-server"],
-  function(minion, draw, message, Server) {
-    minion.message("Draw something!")
-    minion.draw()
-  }
-)
+    cd ~
+    npm install nrtv-minions
+    node nrtv-minions/start
+
+Start working by visiting http://localhost:9777/minions
+
+Add a task with the API:
+
+    var minions = require("nrtv-minions")
+
+    minions.api("http://localhost:9777").addTask(
+      function(minion) {
+        minion.visit("/")
+
+        minion.pressButton(
+          ".go",
+          reportBack
+        )
+
+        function() {
+          minion.report("ok")
+        }
+      },
+      function(message) {
+        if (message == "ok") {
+          console.log("Yay, everything is OK")
+        } else {
+          console.log("Something went wrong.")
+        }
+      }
+    )
 
 
-// review every command, at least the first few for each user
+# Notes
 
-// flag things with adjectives
+review every command, at least the first few for each user
 
-// User 2354: [auto-declined message with prurient content]
+flag things with adjectives
+
+User 2354: [auto-declined message with prurient content]
 
 
 # Why
