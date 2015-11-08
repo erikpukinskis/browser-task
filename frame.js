@@ -8,7 +8,7 @@ module.exports = library.export(
   ],
   function(SingleUseSocket, element) {
 
-    function buildFrame(bridge, queue) {
+    function buildFrame(bridge, requestWork) {
 
       var socket = new SingleUseSocket()
 
@@ -20,7 +20,7 @@ module.exports = library.export(
       socket.listen(
         function(message) {
           if (message == "can i haz work?") {
-            queue.requestWork(sendAJob)
+            requestWork(sendAJob)
           } else {
             socket.assignedTask.callback(message)
           }

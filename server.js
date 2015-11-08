@@ -7,6 +7,7 @@ module.exports = library.export(
 
     var startedServer
     var startedPort
+    var forwards = {}
 
     function start(port, queue) {
 
@@ -23,7 +24,7 @@ module.exports = library.export(
           library.using(["./frame", library.reset("nrtv-browser-bridge")], 
             function(buildFrame, bridge) {
 
-              var iframe = buildFrame(bridge, queue)
+              var iframe = buildFrame(bridge, requestWork)
 
               bridge.sendPage(iframe)(request, response)
             }
@@ -31,6 +32,10 @@ module.exports = library.export(
 
         }
       )
+
+      function requestWork(callback) {
+        queue.requestWork(callback)
+      }
 
       api.installHandlers(server, queue)
 
