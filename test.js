@@ -73,9 +73,9 @@ test.using(
       }
     )
 
-    minions.server.start()
+    minions.server.start(8888)
 
-    var api = minions.api
+    var api = minions.api.at("http://localhost:8888")
     minions.api.addTask(
       function(frameOfReference, minion, iframe) {
         minion.report("IT IS A VERY PRETTY DAY " + frameOfReference + "!")
@@ -101,9 +101,9 @@ test.using(
 
     var dispatcher = new Dispatcher()
 
-    minions.server.start(7654, dispatcher)
+    minions.server.start(8888, dispatcher)
 
-    var api = minions.api.at("http://localhost:7654")
+    var api = minions.api.at("http://localhost:8888")
 
     api.retainMinion(
       function(minion) {
