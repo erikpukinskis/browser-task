@@ -1,9 +1,9 @@
 var test = require("nrtv-test")(require)
 var library = test.library
 
-test.only("controlling minions through the API")
+// test.only("controlling minions through the API")
 // test.only("a minion presses a button and reports back what happened")
-// test.only("retaining minions")
+test.only("retaining minions and reporting objects")
 
 test.library.define(
   "button-server",
@@ -107,7 +107,7 @@ test.using(
 
 
 test.using(
-  "retaining minions",
+  "retaining minions and reporting objects",
   ["./minions", "nrtv-dispatcher"],
   function(expect, done, minions, Dispatcher) {
 
@@ -120,8 +120,13 @@ test.using(
     api.retainMinion(
       function(minion) {
         minion.addTask(
-          function(m) { m.report("food") },
-          function() {
+          function(minion) {
+            minion.report({
+              friends: 3
+            })
+          },
+          function(message) {
+            expect(message).to.have.property("friends", 3)
             minion.resign()
             minions.server.stop()
             done()

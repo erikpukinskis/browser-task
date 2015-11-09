@@ -19,17 +19,23 @@ module.exports = library.export(
       // Requesting work
 
       socket.listen(
-        function(message) {
-          if (message == "can i haz work?") {
+        function(response) {
+          var object = JSON.parse(response)
+
+          var report = object.__nrtvMinionMessage || object
+
+          var isWorkRequest = object.__nrtvWorkRequest
+
+          if (isWorkRequest) {
             requestWork(sendAJob, id)
           } else {
-            socket.assignedTask.callback(message)
+            socket.assignedTask.callback(report)
           }
         }
       )
 
       bridge.asap(
-        socket.defineSendInBrowser().withArgs("can i haz work?")
+        socket.defineSendInBrowser().withArgs(JSON.stringify({__nrtvWorkRequest: "can i haz work?"}))
       )
 
 
@@ -67,8 +73,14 @@ module.exports = library.export(
               var element = iframe.contentDocument.querySelector(selector)
               element.click()
             },
-            report: function(message) {
-              sendSocketMessage(message)
+            report: function(object) {
+              if (typeof object == "string") {
+                var message = object
+                object = {
+                  __nrtvMinionMessage: message
+                }
+              }
+              sendSocketMessage(JSON.stringify(object))
             }
           }      
 
