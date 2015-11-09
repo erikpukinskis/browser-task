@@ -13,7 +13,6 @@
     "nrtv-browser-bridge": "*",
     "nrtv-server": "*",
     "nrtv-single-use-socket": "*",
-    "request": "*",
     "nrtv-dispatcher": "*",
     "nrtv-make-request": "*"
   },

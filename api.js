@@ -2,8 +2,8 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-api-client",
-  ["request", "nrtv-dispatcher", "http"],
-  function(request, Dispatcher, http) {
+  ["nrtv-make-request", "nrtv-dispatcher", "http"],
+  function(makeRequest, Dispatcher, http) {
 
 
     // SERVER
@@ -77,9 +77,10 @@ module.exports = library.export(
         args: task.args
       }
 
+      var path = (prefix||"")+"/tasks"
+
       post({
-        path: "/tasks",
-        prefix: prefix,
+        path: path,
         data: data
       }, function(body) {
         task.callback(body)
@@ -87,51 +88,34 @@ module.exports = library.export(
     }
 
     function post(options, callback) {
+
       var host = api.host || "http://localhost:9777"
 
-      url = host+(options.prefix||"")+options.path
+      var url = host+(options.prefix||"")+options.path
 
-      var parameters = {
-        url: url,
+      var params = {
         method: "POST",
-        json: true,
-        headers: {"content-type": "application/json"},
-        body: options.data
+        url: url,
+        data: options.data
       }
 
-      if (options.data) {
-        var payload = JSON.stringify(options.data, null, 2)
-      } else {
-        payload = ""
-      }
-
-      console.log("POST →", url, payload)
-
-      request.post(parameters,
-        function(error, response) {
-
-          var code = response.statusCode.toString()
-          var status = http.STATUS_CODES[response.statusCode]
+      makeRequest(
+        params, 
+        function(content, response, error) {
 
           function fail(error) {
-            var params = JSON.stringify(parameters, null, 2)
-
-            console.log(" ⚡ BAD REQUEST ⚡ ", code, status+":", error, params)
+            console.log(" ⚡ BAD REQUEST ⚡ ", error, params)
 
             process.exit()
           }
 
           if (error) {
             fail(error)
-          }
-
-          if (response.statusCode > 399) {
-            fail(response.body)
+          } else if (response.statusCode > 399) {
+            fail(content)
           } else {
-            console.log(code, status, "←", url)
+            callback(content)
           }
-
-          callback(response.body)
         }
       )
 
