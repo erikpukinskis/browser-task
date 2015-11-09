@@ -18,7 +18,7 @@
     "nrtv-make-request": "*"
   },
   "scripts": {
-    "test": "node --harmony test.js"
+    "test": "node test.js"
   },
   "devDependencies": {
     "nrtv-test": "*",

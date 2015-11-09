@@ -44,15 +44,19 @@ module.exports = library.export(
         function(request, response) {
           var id = request.params.id
 
-          retainedMinions[id].addTask(
-            request.body,
-            function(message) {
-              response.send(message)
-            }
-          )
-
+          try {
+            retainedMinions[id].addTask(
+              request.body,
+              function(message) {
+                response.send(message)
+              }
+            )
+          } catch(e) {
+            response.status(500).send(e.message)
+          }
         }
       )
+
     }
 
 
