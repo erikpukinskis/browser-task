@@ -7,36 +7,47 @@ test.only("controlling minions through the API")
 
 test.library.define(
   "button-server",
-  ["nrtv-element", "nrtv-browser-bridge", "nrtv-element-server"],
-  function(element, bridge, server) {
+  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server"],
+  function(element, bridge, Server) {
 
-    var ahey = bridge.defineFunction(
-      function() {
-        document.querySelector("body").innerHTML = "a hey ahoy!"
-      }
-    )
-    var butt = element(
-      "button.hai",
-      {onclick: ahey.evalable()},
-      "O hai"
-    )
+    function ButtonStuff() {
+      this.server = new Server()
 
-    server.serve(butt)
+      var ahey = bridge.defineFunction(
+        function() {
+          document.querySelector("body").innerHTML = "a hey ahoy!"
+        }
+      )
+      var butt = element(
+        "button.hai",
+        {onclick: ahey.evalable()},
+        "O hai"
+      )
 
-    return server
+      this.server.get("/", bridge.sendPage(butt))
+
+      this.start = this.server.start.bind(this.server)
+      this.stop = this.server.stop.bind(this.server)
+    }
+
+    return ButtonStuff
   }
 )
 
 test.using(
   "a minion presses a button and reports back what happened",
   ["./minions", "button-server", "nrtv-dispatcher"],
-  function(expect, done, minions, buttonServer, Dispatcher) {
+  function(expect, done, minions, ButtonServer, Dispatcher) {
+
+    var app = new ButtonServer()
+    app.start(7777)
 
     var queue = new Dispatcher()
 
     minions.server.start(8888, queue)
 
     queue.addTask(
+      {host: "http://localhost:7777"},
       function doSomeFunStuff(testVariable, minion, iframe) {
         if (testVariable != "hi") {
           throw new Error("Minion didn't get data!")
@@ -50,7 +61,8 @@ test.using(
       function report(message) {
         expect(message).to.equal("a hey ahoy!")
         done()
-        buttonServer.stop()
+        app.stop()
+        minions.server.stop()
       },
       ["hi"]
     )

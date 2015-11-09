@@ -14,7 +14,8 @@
     "nrtv-server": "*",
     "nrtv-single-use-socket": "*",
     "request": "*",
-    "nrtv-dispatcher": "*"
+    "nrtv-dispatcher": "*",
+    "nrtv-make-request": "*"
   },
   "scripts": {
     "test": "node --harmony test.js"

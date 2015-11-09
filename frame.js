@@ -1,5 +1,7 @@
 var library = require("nrtv-library")(require)
 
+// rename workspace?
+
 module.exports = library.export(
   "minion-frame",
   [
@@ -8,19 +10,18 @@ module.exports = library.export(
   ],
   function(SingleUseSocket, element) {
 
-    function buildFrame(bridge, requestWork) {
+    function buildFrame(bridge, requestWork, id) {
 
       var socket = new SingleUseSocket()
 
       var _this = this
-
 
       // Requesting work
 
       socket.listen(
         function(message) {
           if (message == "can i haz work?") {
-            requestWork(sendAJob)
+            requestWork(sendAJob, id)
           } else {
             socket.assignedTask.callback(message)
           }
@@ -53,7 +54,7 @@ module.exports = library.export(
         [socket.defineSendInBrowser()],
         function doWork(sendSocketMessage, data) {
 
-          data = JSON.parse(data)
+          task = JSON.parse(data)
 
           var iframe = document.querySelector(".sansa")
 
@@ -71,12 +72,12 @@ module.exports = library.export(
             }
           }      
 
-          var func = eval("f="+data.source)
+          var func = eval("f="+task.source)
 
-          data.args.push(minion)
-          data.args.push(iframe)
+          task.args.push(minion)
+          task.args.push(iframe)
 
-          func.apply(null, data.args)
+          func.apply(null, task.args)
         }
       )
 
@@ -84,6 +85,14 @@ module.exports = library.export(
         socket
         .defineListenInBrowser()
         .withArgs(doWork)
+      )
+
+      bridge.asap(
+        bridge.defineFunction(
+          function markMyself(id) {
+            document.cookie = "nrtvMinionId="+id
+          }
+        ).withArgs(id)
       )
 
 

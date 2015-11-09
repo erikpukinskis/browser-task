@@ -64,11 +64,13 @@ module.exports = library.export(
     }
 
     function _addTask(task, prefix) {
+      var source = task.func.toString()
+
       var data = {
-        funcSource: task.func.toString()
-      }
-      if (task.args) {
-        data.args = task.args
+        isNrtvDispatcherTask: true,
+        funcSource: source,
+        options: task.options,
+        args: task.args
       }
 
       post({
