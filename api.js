@@ -110,27 +110,23 @@ module.exports = library.export(
       request.post(parameters,
         function(error, response) {
 
+          var code = response.statusCode.toString()
+          var status = http.STATUS_CODES[response.statusCode]
+
           function fail(error) {
             var params = JSON.stringify(parameters, null, 2)
 
-            console.log(" ⚡ BAD REQUEST ⚡ :", params)
+            console.log(" ⚡ BAD REQUEST ⚡ ", code, status+":", error, params)
 
-            if (typeof error == "string") {
-              throw new Error(error)
-            } else {
-              throw error
-            }
+            process.exit()
           }
 
           if (error) {
             fail(error)
           }
 
-          var code = response.statusCode.toString()
-          var status = http.STATUS_CODES[response.statusCode]
-
           if (response.statusCode > 399) {
-            fail(code+" "+status)
+            fail(response.body)
           } else {
             console.log(code, status, "←", url)
           }
@@ -140,6 +136,7 @@ module.exports = library.export(
       )
 
     }
+
 
 
 
