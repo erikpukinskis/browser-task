@@ -1,7 +1,7 @@
 var library = require("nrtv-library")(require)
 
 module.exports = library.export(
-  "minions",
+  "nrtv-minions",
   ["./server", "./api"],
   function(server, api) {
 
