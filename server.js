@@ -19,7 +19,8 @@ module.exports = library.export(
       var minionIds = {}
       var hostUrls = {}
 
-      server.get(
+      server.addRoute(
+        "get",
         "/minions",
         function(request, response) {
 

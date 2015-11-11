@@ -24,7 +24,7 @@ test.library.define(
         "O hai"
       )
 
-      this.server.get("/", bridge.sendPage(butt))
+      this.server.addRoute("get", "/", bridge.sendPage(butt))
 
       this.start = this.server.start.bind(this.server)
       this.stop = this.server.stop.bind(this.server)
