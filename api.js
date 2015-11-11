@@ -10,7 +10,9 @@ module.exports = library.export(
 
     function installHandlers(server, dispatcher) {
 
-      server.post("/tasks",
+      server.addRoute(
+        "post",
+        "/tasks",
         function(request, response) {
           var task = request.body
           task.callback = function(message) {
@@ -22,7 +24,9 @@ module.exports = library.export(
 
       var retainedMinions = {}
 
-      server.post("/retainers",
+      server.addRoute(
+        "post",
+        "/retainers",
         function(request, response) {
 
           var retainer = dispatcher.retainWorker()
@@ -39,7 +43,19 @@ module.exports = library.export(
         }
       )
 
-      server.post(
+      server.addRoute(
+        "delete",
+        "/retainers/:id",
+        function(request, response) {
+          var id = request.params.id
+          retainedMinions[id].resign()
+          delete retainedMinions[id]
+          response.send("ok!")
+        }
+      )
+
+      server.addRoute(
+        "post",
         "/retainers/:id/tasks",
         function(request, response) {
           var id = request.params.id
@@ -87,11 +103,13 @@ module.exports = library.export(
       })
     }
 
+    function buildUrl(path) {
+      return (api.host || "http://localhost:9777") + path
+    }
+
     function post(options, callback) {
 
-      var host = api.host || "http://localhost:9777"
-
-      var url = host+(options.prefix||"")+options.path
+      var url = buildUrl(options.prefix||"")+options.path
 
       var params = {
         method: "POST",
@@ -122,8 +140,6 @@ module.exports = library.export(
     }
 
 
-
-
     function retainMinion(callback) {
       post({
         path: "/retainers",
@@ -147,7 +163,18 @@ module.exports = library.export(
       }
 
     ApiRetainer.prototype.resign =
-      function() {
+      function(callback) {
+        var url = buildUrl("/retainers/"+this.id)
+        makeRequest({
+          method: "DELETE",
+          url: url
+        }, function(x, response, error) {
+          if (error) { throw error }
+          if (response.statusCode != 200) {
+            throw new Error(response.body)
+          }
+          callback && callback()
+        })
       }
     
 

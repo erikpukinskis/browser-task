@@ -128,12 +128,24 @@ test.using(
           function(message) {
             expect(message).to.have.property("friends", 3)
             minion.resign()
-            minions.server.stop()
-            done()
+            verifyFREEDOM()
           }
         )
       }
     )
+
+    function verifyFREEDOM() {
+      dispatcher.addTask(
+        function(minion) {
+          minion.report("purd says, what purd has to say")
+        },
+        function(yes) {
+          expect(yes).to.match(/purd/)
+          minions.server.stop()
+          done()          
+        }
+      )
+    }
 
     minions.halp(done)
   }
