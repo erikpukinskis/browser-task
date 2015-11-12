@@ -86,6 +86,8 @@ module.exports = library.export(
     function _addTask(task, prefix) {
       var source = task.func.toString()
 
+      // This is a bad smell, trying to match the format of dispatcher. I think all of this API is actually just dispatcher api, and can go there? Minions is really about the frame and the server.... although even some of that seems more suited to nrtv-browse.
+
       var data = {
         isNrtvDispatcherTask: true,
         funcSource: source,
@@ -140,7 +142,72 @@ module.exports = library.export(
     }
 
 
+    var retainedMinions
+
+    function resignRetainersOnExit() {
+
+      if (retainedMinions = global.__nrtvMinionsWaiting) {
+        return
+      }
+
+      global.__nrtvMinionsWaiting = retainedMinions = {}
+
+      process.on('exit', resignAll)
+
+      process.on('SIGINT',
+        resignAll.bind(null,
+          process.exit.bind(null, 2)
+        )
+      )
+
+      process.on('uncaughtException',
+        function(error) {
+          resignAll(function() {
+            willGetStuck = false
+            console.log(error.stack)
+            process.exit(99)
+          })
+        }
+      )
+    }
+
+    var willGetStuck = true
+    var resigning = false
+
+    function resignAll(callback) {
+      process.stdin.resume()
+      if (resigning) {
+        if (willGetStuck) {
+          console.log("Minions released. Hit ctrl+c again to exit")
+        }
+        return
+      }
+      resigning = true
+
+      var ids = Object.keys(retainedMinions)
+
+      if (ids.length) {
+        console.log("We have", ids.length, "minion retainer(s) still checked out. Trying to resign them. (Hit ctrl+c to give up)")
+      }
+
+      resignMore(callback)
+
+      function resignMore() {
+        var id = ids.pop()
+
+        if (!id) {
+          return callback && callback()
+        }
+        var minion = retainedMinions[id]
+        delete retainedMinions[id]
+        minion.resign(resignMore)
+      }
+
+    }
+
     function retainMinion(callback) {
+      resignRetainersOnExit()
+
       post({
         path: "/retainers",
       },
@@ -153,6 +220,7 @@ module.exports = library.export(
 
     function ApiRetainer(id) {
       this.id = id
+      retainedMinions[id] = this
     }
 
     ApiRetainer.prototype.addTask =
@@ -164,7 +232,8 @@ module.exports = library.export(
 
     ApiRetainer.prototype.resign =
       function(callback) {
-        var url = buildUrl("/retainers/"+this.id)
+        var id = this.id
+        var url = buildUrl("/retainers/"+id)
         makeRequest({
           method: "DELETE",
           url: url
@@ -173,6 +242,7 @@ module.exports = library.export(
           if (response.statusCode != 200) {
             throw new Error(response.body)
           }
+          delete retainedMinions[id]
           callback && callback()
         })
       }
