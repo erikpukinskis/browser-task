@@ -48,7 +48,12 @@ module.exports = library.export(
         "/retainers/:id",
         function(request, response) {
           var id = request.params.id
-          retainedMinions[id].resign()
+          var minion = retainedMinions[id]
+          if (!minion) {
+            console.log("Tried to resign", id, "but it is long gone.")
+            return
+          }
+          minion.resign()
           delete retainedMinions[id]
           response.send("ok!")
         }
