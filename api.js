@@ -174,8 +174,8 @@ module.exports = library.export(
         if (!id) {
           return callback()
         }
-        var item = items[id]
-        cleaner(item, id, resignMore)
+        var minion = unresignedMinions[id]
+        minion.resign(resignMore)
       }
 
       resignMore()
