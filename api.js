@@ -165,7 +165,7 @@ module.exports = library.export(
       var ids = Object.keys(unresignedMinions)
 
       if (ids.length) {
-        console.log("\nWe have", ids.length, (cleaner.label||"item")+"(s) still to clean up. Working on it... hit ctrl+c to give up")
+        console.log("\nWe have", ids.length, "minion(s) still to clean up. Working on it... hit ctrl+c to give up")
       }
 
       function resignMore() {
