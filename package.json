@@ -1,6 +1,6 @@
 {
   "name": "nrtv-minions",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Do stuff in other peoples' browsers",
   "main": "minions.js",
   "repository": {
