@@ -157,16 +157,33 @@ module.exports = library.export(
       })
     }
 
-    var guaranteeResign = guarantor(
-      function(minion, id, callback) {
-        minion.resign(callback)
-      },
-      "minion retainer"
-    )
+
+    var unresignedMinions = {}
+    guarantor(resignMinions)
+
+    function resignMinions(callback) {
+      var ids = Object.keys(unresignedMinions)
+
+      if (ids.length) {
+        console.log("\nWe have", ids.length, (cleaner.label||"item")+"(s) still to clean up. Working on it... hit ctrl+c to give up")
+      }
+
+      function resignMore() {
+        var id = ids.pop()
+
+        if (!id) {
+          return callback()
+        }
+        var item = items[id]
+        cleaner(item, id, resignMore)
+      }
+
+      resignMore()
+    }
 
     function ApiRetainer(id) {
       this.id = id
-      guaranteeResign(this, id)
+      unresignedMinions[id] = this
     }
 
     ApiRetainer.prototype.addTask =
@@ -188,7 +205,7 @@ module.exports = library.export(
           if (response.statusCode != 200) {
             throw new Error(response.body)
           }
-          guaranteeResign.forget(id)
+          delete unresignedMinions[id]
           callback && callback()
         })
       }
