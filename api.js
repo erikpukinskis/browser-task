@@ -144,11 +144,11 @@ module.exports = library.export(
         function(content, response, error) {
 
           if (error) {
-            console.log(" ⚡⚡⚡ ERROR ⚡⚡⚡")
+            console.log(" ⚡⚡⚡ ERROR ⚡⚡⚡ ", content||"")
             console.log("There was an error trying to connect to the server for your request:", JSON.stringify(params, null, 2))
             throw(apiError)
           } else if (response.statusCode >= 400) {
-            console.log(" ⚡⚡⚡ ERROR ⚡⚡⚡")
+            console.log(" ⚡⚡⚡ ERROR ⚡⚡⚡ ", content||"")
             console.log("The server returned status code", response.statusCode, "which suggests there was something wrong with your request:", JSON.stringify(params, null, 2))
             if (response.statusCode >= 500) {
               console.log("Check the server logs for details.")
