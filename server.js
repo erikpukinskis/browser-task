@@ -28,7 +28,8 @@ module.exports = library.export(
             var id = Math.random().toString(36).split(".")[1]
           } while (minionIds[id])
 
-          library.using(["./frame", library.reset("nrtv-browser-bridge")], 
+          library.using(
+            ["./frame", library.reset("nrtv-browser-bridge")],
             function(buildFrame, bridge) {
 
               var iframe = buildFrame(bridge, requestWork, id)
@@ -55,8 +56,13 @@ module.exports = library.export(
 
           if (!id) { return next() }
 
-          var url = hostUrls[id] || ""
-          url += request.url
+          var host = hostUrls[id]
+
+          if (!host) {
+            console.log("Minion wants", request.path, "but this task didn't specify a host, so ¯\\_(ツ)_/¯")
+          }
+
+          var url = (host||"")+request.url
 
           makeRequest({
             url: url,

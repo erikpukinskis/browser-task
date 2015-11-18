@@ -64,6 +64,14 @@ module.exports = library.export(
         "/retainers/:id/tasks",
         function(request, response) {
           var id = request.params.id
+          var minion = retainedMinions[id]
+
+          if (!minion) {
+            var message = "Tried to give a task to minion on retainer "+id+" but there is no such retained minion."
+            response.status(410).send(message)
+            console.log(message)
+            return
+          }
 
           try {
             retainedMinions[id].addTask(
@@ -73,6 +81,7 @@ module.exports = library.export(
               }
             )
           } catch(e) {
+            console.log(e.stack)
             response.status(500).send(e.message)
           }
         }
@@ -124,20 +133,27 @@ module.exports = library.export(
         data: options.data
       }
 
+      try {
+        throw new Error("Minions API request failed")
+      } catch(e) {
+        var apiError = e
+      }
+
       makeRequest(
-        params, 
+        params,
         function(content, response, error) {
 
-          function fail(error) {
-            console.log(" ⚡ BAD REQUEST ⚡ ", error, params)
-
-            process.exit()
-          }
-
           if (error) {
-            fail(error)
-          } else if (response.statusCode > 399) {
-            fail(content)
+            console.log(" ⚡⚡⚡ ERROR ⚡⚡⚡")
+            console.log("There was an error trying to connect to the server for your request:", JSON.stringify(params, null, 2))
+            throw(apiError)
+          } else if (response.statusCode >= 400) {
+            console.log(" ⚡⚡⚡ ERROR ⚡⚡⚡")
+            console.log("The server returned status code", response.statusCode, "which suggests there was something wrong with your request:", JSON.stringify(params, null, 2))
+            if (response.statusCode >= 500) {
+              console.log("Check the server logs for details.")
+            }
+            throw(apiError)
           } else {
             callback(content)
           }
@@ -209,7 +225,7 @@ module.exports = library.export(
           callback && callback()
         })
       }
-    
+
 
     var api = {
       addTask: addTask,
