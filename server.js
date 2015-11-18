@@ -44,7 +44,12 @@ module.exports = library.export(
       function requestWork(callback, id) {
         queue.requestWork(
           function(task) {
-            hostUrls[id] = task.options.host
+            var host = host = task.options.host
+
+            if (host) {
+              hostUrls[id] = host
+            }
+
             callback(task)
           }
         )
@@ -58,8 +63,10 @@ module.exports = library.export(
 
           var host = hostUrls[id]
 
-          if (!host) {
-            console.log("Minion wants", request.path, "but this task didn't specify a host, so ¯\\_(ツ)_/¯")
+          var isFavicon = request.path == "/favicon.ico"
+
+          if (!host && !isFavicon) {
+            return response.status(400).send("Tried to request "+request.path+", but the task didn't specify a host so the minion server doesn't know how to route the request.")
           }
 
           var url = (host||"")+request.url
