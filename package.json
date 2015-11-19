@@ -15,7 +15,8 @@
     "nrtv-single-use-socket": "*",
     "nrtv-dispatcher": "*",
     "nrtv-make-request": "*",
-    "guarantor": "*"
+    "guarantor": "*",
+    "nrtv-wait": "*"
   },
   "scripts": {
     "test": "node test.js"

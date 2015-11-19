@@ -1,23 +1,40 @@
 var test = require("nrtv-test")(require)
 var library = test.library
 
-test.only("controlling minions through the API")
-// test.only("a minion presses a button and reports back what happened")
+// test.only("controlling minions through the API")
+test.only("a minion presses a button and reports back what happened")
 // test.only("retaining minions and reporting objects")
 
 test.library.define(
   "button-server",
-  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server"],
-  function(element, bridge, Server) {
+  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server", "nrtv-make-request"],
+  function(element, bridge, Server, makeRequest) {
 
     function ButtonStuff() {
       this.server = new Server()
 
       var ahey = bridge.defineFunction(
-        function() {
-          document.querySelector("body").innerHTML = "a hey ahoy!"
+        [makeRequest.defineInBrowser()],
+        function(makeRequest) {
+          makeRequest(
+            "get",
+            "/slowness",
+            function(text) {
+              document.querySelector("body").innerHTML = text
+            }
+          )
         }
       )
+
+      this.server.addRoute(
+        "get", "/slowness",
+        function(request, response) {
+          setTimeout(function() {
+            response.send("a hey ahoy!")
+          }, 100)
+        }
+      )
+
       var butt = element(
         "button.hai",
         {onclick: ahey.evalable()},
@@ -54,11 +71,18 @@ test.using(
         }
 
         minion.browse("/", function() {
-          minion.press(".hai")
-          minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
+
+          var button = iframe.contentDocument.querySelector(".hai")
+
+          button.click()
+
+          minion.wait(iframe.contentDocument, function() {
+            minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
+          })
+
         })
       },
-      function report(message) {
+      function(message) {
         expect(message).to.equal("a hey ahoy!")
         done()
         app.stop()

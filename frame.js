@@ -6,9 +6,10 @@ module.exports = library.export(
   "minion-frame",
   [
     "nrtv-single-use-socket",
-    "nrtv-element"
+    "nrtv-element",
+    "nrtv-wait"
   ],
-  function(SingleUseSocket, element) {
+  function(SingleUseSocket, element, wait) {
 
     function buildFrame(bridge, requestWork, id) {
 
@@ -57,8 +58,8 @@ module.exports = library.export(
       }
 
       var doWork = bridge.defineFunction(
-        [socket.defineSendInBrowser()],
-        function doWork(sendSocketMessage, data) {
+        [socket.defineSendInBrowser(), wait.defineInBrowser()],
+        function doWork(sendSocketMessage, wait, data) {
 
           task = JSON.parse(data)
 
@@ -69,10 +70,6 @@ module.exports = library.export(
               iframe.src = url
               iframe.onload = callback
             },
-            press: function(selector) {
-              var element = iframe.contentDocument.querySelector(selector)
-              element.click()
-            },
             report: function(object) {
               if (typeof object == "string") {
                 var message = object
@@ -81,7 +78,8 @@ module.exports = library.export(
                 }
               }
               sendSocketMessage(JSON.stringify(object))
-            }
+            },
+            wait: wait
           }      
 
           var func = eval("f="+task.source)
@@ -92,6 +90,7 @@ module.exports = library.export(
           func.apply(null, task.args)
         }
       )
+
 
       bridge.asap(
         socket
