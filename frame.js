@@ -68,7 +68,7 @@ module.exports = library.export(
           var minion = {
             browse: function(url, callback) {
               iframe.src = url
-              iframe.onload = callback
+              iframe.onload = wait.bind(null, callback)
             },
             report: function(object) {
               if (typeof object == "string") {

@@ -2,8 +2,8 @@ var test = require("nrtv-test")(require)
 var library = test.library
 
 // test.only("controlling minions through the API")
-test.only("a minion presses a button and reports back what happened")
-// test.only("retaining minions and reporting objects")
+// test.only("a minion presses a button and reports back what happened")
+test.only("retaining minions and reporting objects")
 
 test.library.define(
   "button-server",
@@ -12,6 +12,15 @@ test.library.define(
 
     function ButtonStuff() {
       this.server = new Server()
+
+      this.server.addRoute(
+        "get", "/slowness",
+        function(request, response) {
+          setTimeout(function() {
+            response.send("a hey ahoy!")
+          }, 100)
+        }
+      )
 
       var ahey = bridge.defineFunction(
         [makeRequest.defineInBrowser()],
@@ -23,15 +32,6 @@ test.library.define(
               document.querySelector("body").innerHTML = text
             }
           )
-        }
-      )
-
-      this.server.addRoute(
-        "get", "/slowness",
-        function(request, response) {
-          setTimeout(function() {
-            response.send("a hey ahoy!")
-          }, 100)
         }
       )
 
