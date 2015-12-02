@@ -21,11 +21,13 @@ module.exports = library.export(
 
       socket.listen(
         function(response) {
-          var object = JSON.parse(response)
+          if (response != "undefined") {
+            var object = JSON.parse(response)
 
-          var report = object.__nrtvMinionMessage || object
+            var report = object.__nrtvMinionMessage || object
 
-          var isWorkRequest = object.__nrtvWorkRequest
+            var isWorkRequest = object.__nrtvWorkRequest
+          }
 
           if (isWorkRequest) {
             requestWork(sendAJob, id)
