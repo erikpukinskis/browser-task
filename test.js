@@ -2,8 +2,8 @@ var test = require("nrtv-test")(require)
 var library = test.library
 
 // test.only("controlling minions through the API")
-// test.only("a minion presses a button and reports back what happened")
-test.only("retaining minions and reporting objects")
+test.only("a minion presses a button and reports back what happened")
+// test.only("retaining minions and reporting objects")
 
 test.library.define(
   "button-server",

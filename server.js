@@ -7,6 +7,8 @@ module.exports = library.export(
 
     var startedServer
     var startedPort
+    var minionIds = {}
+    var hostUrls = {}
 
     function start(port, queue) {
 
@@ -15,9 +17,6 @@ module.exports = library.export(
       }
 
       SingleUseSocket.getReady()
-
-      var minionIds = {}
-      var hostUrls = {}
 
       server.addRoute(
         "get",
@@ -55,31 +54,7 @@ module.exports = library.export(
         )
       }
 
-      server.use(
-        function(request, response, next) {
-          var id = request.cookies.nrtvMinionId
-
-          if (!id) { return next() }
-
-          var host = hostUrls[id]
-
-          var isFavicon = request.path == "/favicon.ico"
-
-          if (!host && !isFavicon) {
-            return response.status(400).send("Tried to request "+request.path+", but the task didn't specify a host so the minion server doesn't know how to route the request.")
-          }
-
-          var url = (host||"")+request.url
-
-          makeRequest({
-            url: url,
-            method: request.method,
-            data: request.body
-          }, function(body) {
-            response.send(body)
-          })
-        }
-      )
+      server.use(proxyHttpRequests)
 
       api.installHandlers(server, queue)
 
@@ -90,6 +65,30 @@ module.exports = library.export(
       startedServer = server
 
       console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
+    }
+
+    function proxyHttpRequests(request, response, next) {
+      var id = request.cookies.nrtvMinionId
+
+      if (!id) { return next() }
+
+      var host = hostUrls[id]
+
+      var isFavicon = request.path == "/favicon.ico"
+
+      if (!host && !isFavicon) {
+        return response.status(400).send("Tried to request "+request.path+", but the task didn't specify a host so the minion server doesn't know how to route the request.")
+      }
+
+      var url = (host||"")+request.url
+
+      makeRequest({
+        url: url,
+        method: request.method,
+        data: request.body
+      }, function(body) {
+        response.send(body)
+      })
     }
 
     function stop() {
@@ -103,5 +102,6 @@ module.exports = library.export(
         return startedPort
       }
     }
+
   }
 )
