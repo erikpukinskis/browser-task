@@ -38,8 +38,17 @@ module.exports = library.export(
       )
 
       bridge.asap(
-        socket.defineSendInBrowser().withArgs(JSON.stringify({__nrtvWorkRequest: "can i haz work?"}))
+        bridge.defineFunction(
+          function markMyself(id) {
+            document.isOutsideNrtvMinionIframe = true
+            document.cookie = "nrtvMinionId="+id
+          }
+        ).withArgs(id)
       )
+
+      var workRequest = JSON.stringify({__nrtvWorkRequest: "can i haz work?"})
+
+      bridge.asap(socket.defineSendInBrowser().withArgs(workRequest))
 
 
       // Sending work
@@ -99,15 +108,6 @@ module.exports = library.export(
         .defineListenInBrowser()
         .withArgs(doWork)
       )
-
-      bridge.asap(
-        bridge.defineFunction(
-          function markMyself(id) {
-            document.cookie = "nrtvMinionId="+id
-          }
-        ).withArgs(id)
-      )
-
 
       return element("iframe.sansa")
     }

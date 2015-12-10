@@ -2,8 +2,9 @@ var test = require("nrtv-test")(require)
 var library = test.library
 
 // test.only("controlling minions through the API")
-test.only("a minion presses a button and reports back what happened")
+// test.only("a minion presses a button and reports back what happened")
 // test.only("retaining minions and reporting objects")
+test.only("proxying websockets")
 
 test.library.define(
   "button-server",
@@ -64,7 +65,7 @@ test.using(
     minions.server.start(8888, queue)
 
     queue.addTask(
-      {host: "http://localhost:7777"},
+      {host: "localhost:7777"},
       function doSomeFunStuff(testVariable, minion, iframe) {
         if (testVariable != "hi") {
           throw new Error("Minion didn't get data!")
@@ -97,17 +98,8 @@ test.using(
 
 test.using(
   "controlling minions through the API",
-  ["./minions", ],
-  function(expect, done, minions) {
-
-    var appServer
-
-    library.using(
-      ["button-server", library.reset("nrtv-server")],
-      function(bs, server) {
-        appServer = server
-      }
-    )
+  ["./minions", "button-server"],
+  function(expect, done, minions, ButtonServer) {
 
     minions.server.start(8888)
 
@@ -174,3 +166,66 @@ test.using(
     minions.halp(done)
   }
 )
+
+
+test.using(
+  "proxying websockets",
+  ["./minions", "nrtv-dispatcher", "nrtv-server", "ws", "nrtv-socket-server", "nrtv-socket", library.reset("nrtv-browser-bridge")],
+  function(expect, done, minions, Dispatcher, Server, ws, SocketServer, socket, bridge) {
+
+    var server = new Server()
+
+    var socketServer = new SocketServer(server)
+
+    socketServer.use(
+      function(connection) {
+        connection.on("data", runChecks)
+      }
+    )
+
+    server.start(6543)
+
+    var queue = new Dispatcher()
+
+    minions.server.start(8888, queue)
+
+    // now we have the problem that addTask can't take modules. So we need to navigate to a page that does this shit?
+
+    var sendBoo = 
+      bridge.defineFunction(
+        [socket.defineGetInBrowser()],
+        function(getSocket) {
+          getSocket(function(socket) {
+            socket.send("boo!")
+          })
+        }
+      )
+
+    bridge.asap(sendBoo)
+
+    server.addRoute("get", "/boo",
+      bridge.sendPage()
+    )
+
+    queue.addTask(
+      {host: "localhost:6543"},
+      function(minion) {
+        minion.browse("/boo", function() {
+          minion.report("done")
+        })
+      },
+      function() {}
+    )
+
+    minions.halp(done)
+
+    function runChecks(message) {
+      expect(message).to.equal("boo!")
+      server.stop()
+      minions.server.stop()
+      done()
+    }
+  }
+)
+
+

@@ -16,7 +16,9 @@
     "nrtv-dispatcher": "*",
     "nrtv-make-request": "*",
     "guarantor": "*",
-    "nrtv-wait": "*"
+    "nrtv-wait": "*",
+    "ws": "*",
+    "nrtv-socket-server": "*"
   },
   "scripts": {
     "test": "node test.js"

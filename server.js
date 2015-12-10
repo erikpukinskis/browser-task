@@ -2,8 +2,8 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "nrtv-make-request"],
-  function(SingleUseSocket, server, Dispatcher, api, makeRequest) {
+  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "nrtv-make-request", "nrtv-socket-server", "querystring", "./websocket-proxy"],
+  function(SingleUseSocket, server, Dispatcher, api, makeRequest, socketServer, querystring, proxyConnection) {
 
     var startedServer
     var startedPort
@@ -43,6 +43,7 @@ module.exports = library.export(
       function requestWork(callback, id) {
         queue.requestWork(
           function(task) {
+
             var host = host = task.options.host
 
             if (host) {
@@ -56,6 +57,8 @@ module.exports = library.export(
 
       server.use(proxyHttpRequests)
 
+      socketServer.use(proxyWebsockets)
+
       api.installHandlers(server, queue)
 
       startedPort = port || 9777
@@ -65,6 +68,30 @@ module.exports = library.export(
       startedServer = server
 
       console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
+    }
+
+    function proxyWebsockets(connection, next) {
+
+      var myUrl = connection._session.ws.url
+      if (myUrl.match(/6543/)) {
+        throw new Error("HOW")
+      }
+
+      var params = querystring.parse(connection.url.split("?")[1])
+
+      var id = params.__nrtvMinionId
+
+      if (id) {
+        var hostUrl = hostUrls[id]
+
+        if (!hostUrl) {
+          throw new Error("Tried to proxy websocket connection from minion "+id+" but the task didn't set a host?")
+        }
+
+        proxyConnection(connection, hostUrl)
+      } else {
+        next()
+      }
     }
 
     function proxyHttpRequests(request, response, next) {
@@ -80,7 +107,11 @@ module.exports = library.export(
         return response.status(400).send("Tried to request "+request.path+", but the task didn't specify a host so the minion server doesn't know how to route the request.")
       }
 
-      var url = (host||"")+request.url
+      if (host) {
+        var url = "http://"+host+request.url
+      } else {
+        var url = request.url
+      }
 
       makeRequest({
         url: url,
