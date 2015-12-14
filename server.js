@@ -5,7 +5,6 @@ module.exports = library.export(
   ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "nrtv-make-request", "nrtv-socket-server", "querystring", "./websocket-proxy"],
   function(SingleUseSocket, server, Dispatcher, api, makeRequest, socketServer, querystring, proxyConnection) {
 
-    var startedServer
     var startedPort
     var minionIds = {}
     var hostUrls = {}
@@ -16,7 +15,7 @@ module.exports = library.export(
         queue = new Dispatcher()
       }
 
-      SingleUseSocket.getReady()
+      SingleUseSocket.installOn(server)
 
       server.addRoute(
         "get",
@@ -64,8 +63,6 @@ module.exports = library.export(
       startedPort = port || 9777
 
       server.start(startedPort)
-
-      startedServer = server
 
       console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
     }
@@ -123,7 +120,7 @@ module.exports = library.export(
     }
 
     function stop() {
-      startedServer.stop()
+      server.stop()
     }
 
     return {

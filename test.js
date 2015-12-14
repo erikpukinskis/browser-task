@@ -12,9 +12,9 @@ test.library.define(
   function(element, bridge, Server, makeRequest) {
 
     function ButtonStuff() {
-      this.server = new Server()
+      var server = new Server()
 
-      this.server.addRoute(
+      server.addRoute(
         "get", "/slowness",
         function(request, response) {
           setTimeout(function() {
@@ -42,10 +42,15 @@ test.library.define(
         "O hai"
       )
 
-      this.server.addRoute("get", "/", bridge.sendPage(butt))
+      server.addRoute("get", "/", bridge.sendPage(butt))
 
-      this.start = this.server.start.bind(this.server)
-      this.stop = this.server.stop.bind(this.server)
+      this.start = function(port) {
+        server.start(port)
+      }
+
+      this.stop = function() {
+        server.stop()
+      }
     }
 
     return ButtonStuff
@@ -58,10 +63,8 @@ test.using(
   function(expect, done, minions, ButtonServer, Dispatcher) {
 
     var app = new ButtonServer()
-    app.start(7777)
-
     var queue = new Dispatcher()
-
+    app.start(7777)
     minions.server.start(8888, queue)
 
     queue.addTask(
