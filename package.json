@@ -24,8 +24,7 @@
     "test": "node test.js"
   },
   "devDependencies": {
-    "nrtv-test": "*",
-    "nrtv-element-server": "*"
+    "nrtv-test": "*"
   },
   "license": "ISC"
 }
