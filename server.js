@@ -113,7 +113,8 @@ module.exports = library.export(
       makeRequest({
         url: url,
         method: request.method,
-        data: request.body
+        data: request.body,
+        contentType: request.header("content-type")
       }, function(body) {
         response.send(body)
       })
