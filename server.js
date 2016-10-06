@@ -2,7 +2,7 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "nrtv-make-request", "nrtv-socket-server", "querystring", "./websocket-proxy"],
+  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "make-request", "nrtv-socket-server", "querystring", "./websocket-proxy"],
   function(SingleUseSocket, server, Dispatcher, api, makeRequest, socketServer, querystring, proxyConnection) {
 
     var startedPort
