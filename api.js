@@ -2,7 +2,7 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-api-client",
-  ["nrtv-make-request", "nrtv-dispatcher", "http", "guarantor"],
+  ["make-request", "nrtv-dispatcher", "http", "guarantor"],
   function(makeRequest, Dispatcher, http, guarantor) {
 
 

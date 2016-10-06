@@ -27,7 +27,7 @@ module.exports = library.export(
           } while (minionIds[id])
 
           library.using(
-            ["./frame", library.reset("nrtv-browser-bridge")],
+            ["./frame", library.reset("browser-bridge")],
             function(buildFrame, bridge) {
 
               var iframe = buildFrame(bridge, requestWork, id)

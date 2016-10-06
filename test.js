@@ -8,7 +8,7 @@ test.only("proxying websockets")
 
 test.library.define(
   "button-server",
-  ["nrtv-element", "nrtv-browser-bridge", "nrtv-server", "nrtv-make-request"],
+  ["web-element", "browser-bridge", "nrtv-server", "make-request"],
   function(element, bridge, Server, makeRequest) {
 
     function ButtonStuff() {
@@ -173,7 +173,7 @@ test.using(
 
 test.using(
   "proxying websockets",
-  ["./minions", "nrtv-dispatcher", "nrtv-server", "ws", "nrtv-socket-server", "nrtv-socket", library.reset("nrtv-browser-bridge")],
+  ["./minions", "nrtv-dispatcher", "nrtv-server", "ws", "nrtv-socket-server", "nrtv-socket", library.reset("browser-bridge")],
   function(expect, done, minions, Dispatcher, Server, ws, SocketServer, socket, bridge) {
 
     var server = new Server()

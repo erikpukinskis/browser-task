@@ -6,7 +6,7 @@ module.exports = library.export(
   "minion-frame",
   [
     "nrtv-single-use-socket",
-    "nrtv-element",
+    "web-element",
     "nrtv-wait"
   ],
   function(SingleUseSocket, element, wait) {

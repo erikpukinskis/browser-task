@@ -9,19 +9,20 @@
   },
   "dependencies": {
     "nrtv-library": "*",
-    "nrtv-element": "*",
-    "nrtv-browser-bridge": "*",
+    "web-element": "*",
+    "browser-bridge": "*",
     "nrtv-server": "*",
     "nrtv-single-use-socket": "*",
     "nrtv-dispatcher": "*",
-    "nrtv-make-request": "*",
+    "make-request": "*",
     "guarantor": "*",
     "nrtv-wait": "*",
     "ws": "*",
     "nrtv-socket-server": "*"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "start": "node start.js"
   },
   "devDependencies": {
     "nrtv-test": "*"
