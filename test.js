@@ -9,7 +9,9 @@ test.only("proxying websockets")
 test.library.define(
   "button-server",
   ["web-element", "browser-bridge", "nrtv-server", "make-request"],
-  function(element, bridge, Server, makeRequest) {
+  function(element, BrowserBridge, Server, makeRequest) {
+
+    var bridge = new BrowserBridge()
 
     function ButtonStuff() {
       var server = new Server()
@@ -24,7 +26,7 @@ test.library.define(
       )
 
       var ahey = bridge.defineFunction(
-        [makeRequest.defineInBrowser()],
+        [makeRequest.defineOn(bridge)],
         function(makeRequest) {
           makeRequest(
             "get",
@@ -173,8 +175,8 @@ test.using(
 
 test.using(
   "proxying websockets",
-  ["./minions", "nrtv-dispatcher", "nrtv-server", "ws", "nrtv-socket-server", "nrtv-socket", library.reset("browser-bridge")],
-  function(expect, done, minions, Dispatcher, Server, ws, SocketServer, socket, bridge) {
+  ["./minions", "nrtv-dispatcher", "nrtv-server", "ws", "nrtv-socket-server", "nrtv-socket", "browser-bridge"],
+  function(expect, done, minions, Dispatcher, Server, ws, SocketServer, socket, BrowserBridge) {
 
     var server = new Server()
 
@@ -194,9 +196,11 @@ test.using(
 
     // now we have the problem that addTask can't take modules. So we need to navigate to a page that does this shit?
 
+    var bridge = new BrowserBridge()
+
     var sendBoo = 
       bridge.defineFunction(
-        [socket.defineGetInBrowser()],
+        [socket.defineGetOn(bridge)],
         function(getSocket) {
           getSocket(function(socket) {
             socket.send("boo!")

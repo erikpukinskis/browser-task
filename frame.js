@@ -48,7 +48,7 @@ module.exports = library.export(
 
       var workRequest = JSON.stringify({__nrtvWorkRequest: "can i haz work?"})
 
-      bridge.asap(socket.defineSendInBrowser().withArgs(workRequest))
+      bridge.asap(socket.defineSendOn(bridge).withArgs(workRequest))
 
 
       // Sending work
@@ -69,7 +69,9 @@ module.exports = library.export(
       }
 
       var doWork = bridge.defineFunction(
-        [socket.defineSendInBrowser(), wait.defineInBrowser()],
+        [
+          socket.defineSendOn(bridge),
+          wait.defineOn(bridge)],
         function doWork(sendSocketMessage, wait, data) {
 
           task = JSON.parse(data)
@@ -105,7 +107,7 @@ module.exports = library.export(
 
       bridge.asap(
         socket
-        .defineListenInBrowser()
+        .defineListenOn(bridge)
         .withArgs(doWork)
       )
 
