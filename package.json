@@ -1,11 +1,11 @@
 {
-  "name": "nrtv-minions",
+  "name": "browser-task",
   "version": "0.34.0",
   "description": "Do stuff in other peoples' browsers",
   "main": "minions.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/erikpukinskis/nrtv-minions.git"
+    "url": "https://github.com/erikpukinskis/browser-task.git"
   },
   "dependencies": {
     "nrtv-library": "*",
