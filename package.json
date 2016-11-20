@@ -1,6 +1,6 @@
 {
   "name": "browser-task",
-  "version": "0.34.0",
+  "version": "0.35.0",
   "description": "Do stuff in other peoples' browsers",
   "main": "minions.js",
   "repository": {
