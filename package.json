@@ -13,12 +13,11 @@
     "browser-bridge": "*",
     "nrtv-server": "*",
     "nrtv-single-use-socket": "*",
+    "get-socket": "*",
     "nrtv-dispatcher": "*",
     "make-request": "*",
     "guarantor": "*",
-    "nrtv-wait": "*",
-    "ws": "*",
-    "nrtv-socket-server": "*"
+    "nrtv-wait": "*"
   },
   "scripts": {
     "test": "node test.js",

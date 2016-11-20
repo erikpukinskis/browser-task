@@ -2,8 +2,8 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "make-request", "nrtv-socket-server", "querystring", "./websocket-proxy"],
-  function(SingleUseSocket, server, Dispatcher, api, makeRequest, socketServer, querystring, proxyConnection) {
+  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy"],
+  function(SingleUseSocket, server, Dispatcher, api, makeRequest, getSocket, querystring, proxySocket) {
 
     var startedPort
     var minionIds = {}
@@ -42,7 +42,6 @@ module.exports = library.export(
       function requestWork(callback, id) {
         queue.requestWork(
           function(task) {
-
             var host = host = task.options.host
 
             if (host) {
@@ -56,7 +55,7 @@ module.exports = library.export(
 
       server.use(proxyHttpRequests)
 
-      socketServer.use(proxyWebsockets)
+      getSocket.handleConnections(server, proxyWebsockets)
 
       api.installHandlers(server, queue)
 
@@ -67,14 +66,15 @@ module.exports = library.export(
       console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
     }
 
-    function proxyWebsockets(connection, next) {
+    function proxyWebsockets(socket, next) {
 
-      var myUrl = connection._session.ws.url
+      var myUrl = socket.url
+      
       if (myUrl.match(/6543/)) {
         throw new Error("HOW")
       }
 
-      var params = querystring.parse(connection.url.split("?")[1])
+      var params = querystring.parse(myUrl.split("?")[1])
 
       var id = params.__nrtvMinionId
 
@@ -85,7 +85,7 @@ module.exports = library.export(
           throw new Error("Tried to proxy websocket connection from minion "+id+" but the task didn't set a host?")
         }
 
-        proxyConnection(connection, hostUrl)
+        proxySocket(socket, hostUrl)
       } else {
         next()
       }

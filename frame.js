@@ -54,16 +54,18 @@ module.exports = library.export(
       // Sending work
 
       function sendAJob(task) {
+        console.log("\n______\nMINION on "+socket.identifier+" is getting work:\n")
+
         if (!task.funcSource) {
           task.funcSource = task.func.toString()
         }
 
-        socket.send(
-          JSON.stringify({
-            source: task.funcSource,
-            args: task.args || []
-          })
-        )
+        var message = JSON.stringify({
+          source: task.funcSource,
+          args: task.args || []
+        })
+
+        socket.send(message)
 
         socket.assignedTask = task
       }
@@ -78,10 +80,14 @@ module.exports = library.export(
 
           var iframe = document.querySelector(".sansa")
 
+          function readyDocument(callback) {
+            wait.forIframe(iframe, callback)
+          }
+
           var minion = {
             browse: function(url, callback) {
               iframe.src = url
-              iframe.onload = wait.bind(null, callback)
+              iframe.onload = readyDocument.bind(null, callback)
             },
             report: function(object) {
               if (typeof object == "string") {
@@ -90,6 +96,7 @@ module.exports = library.export(
                   __nrtvMinionMessage: message
                 }
               }
+
               sendSocketMessage(JSON.stringify(object))
             },
             wait: wait

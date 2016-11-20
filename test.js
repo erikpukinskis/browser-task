@@ -1,5 +1,4 @@
 var test = require("nrtv-test")(require)
-var library = test.library
 
 // test.only("controlling minions through the API")
 // test.only("a minion presses a button and reports back what happened")
@@ -81,8 +80,8 @@ test.using(
           var button = iframe.contentDocument.querySelector(".hai")
 
           button.click()
-
-          minion.wait(iframe.contentDocument, function() {
+          
+          minion.wait.forIframe(iframe, function() {
             minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
           })
 
@@ -103,8 +102,8 @@ test.using(
 
 test.using(
   "controlling minions through the API",
-  ["./minions", "button-server"],
-  function(expect, done, minions, ButtonServer) {
+  ["./minions"],
+  function(expect, done, minions) {
 
     minions.server.start(8888)
 
@@ -175,16 +174,15 @@ test.using(
 
 test.using(
   "proxying websockets",
-  ["./minions", "nrtv-dispatcher", "nrtv-server", "ws", "nrtv-socket-server", "nrtv-socket", "browser-bridge"],
-  function(expect, done, minions, Dispatcher, Server, ws, SocketServer, socket, BrowserBridge) {
+  ["./minions", "nrtv-dispatcher", "nrtv-server", "get-socket", "browser-bridge"],
+  function(expect, done, minions, Dispatcher, Server, getSocket, BrowserBridge) {
 
     var server = new Server()
 
-    var socketServer = new SocketServer(server)
-
-    socketServer.use(
-      function(connection) {
-        connection.on("data", runChecks)
+    getSocket.handleConnections(
+      server,
+      function(socket) {
+        socket.listen(runChecks)
       }
     )
 
@@ -200,7 +198,7 @@ test.using(
 
     var sendBoo = 
       bridge.defineFunction(
-        [socket.defineGetOn(bridge)],
+        [getSocket.defineOn(bridge)],
         function(getSocket) {
           getSocket(function(socket) {
             socket.send("boo!")
