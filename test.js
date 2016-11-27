@@ -1,13 +1,198 @@
-var test = require("nrtv-test")(require)
+var runTest = require("run-test")(require)
 
-// test.only("controlling minions through the API")
-// test.only("a minion presses a button and reports back what happened")
-// test.only("retaining minions and reporting objects")
-test.only("proxying websockets")
+// runTest.only("controlling minions through the API")
+// runTest.only("a minion presses a button and reports back what happened")
+// runTest.only("retaining minions and reporting objects")
+// runTest.only("proxying websockets")
+runTest.only("loads a page")
 
-test.library.define(
+
+runTest.failAfter(10000000)
+
+function halp(port, done) {
+  console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
+}
+
+runTest(
+  "loads a page",
+
+  ["./", "web-site", "web-element", "browser-bridge", "./start-server", "./api"],
+  function(expect, done, browserTask, Server, element, bridge, startServer, api) {
+
+    var apiServer = startServer(8888)
+
+    var server = new Server()
+
+    var morph = bridge.defineFunction(
+      function() {
+        document.querySelector("button").innerHTML = "bite me!"
+      }
+    )
+
+    var butt = element("button", {
+      onclick: morph.evalable()
+    }, "click me!")
+
+    server.addRoute("get", "/",
+      bridge.sendPage(butt)
+    )
+
+    server.start(8818)
+
+    var browser = browserTask(
+      "http://localhost:8818",
+      function() {        
+        browser.assertText(
+          "button",
+          /click me/,
+          pressButton
+        )
+      },
+      {server: "http://localhost:8888"}
+    )
+
+    halp(8888, done)
+
+    function pressButton() {
+      browser.pressButton("button", checkText)
+    }
+
+    function checkText() {
+      browser.assertText(
+        "button",
+        /bite me/,
+        finish
+      )
+    }
+
+    function finish() {
+      browser.done(function() {
+        server.stop()
+        apiServer.stop()
+        done()
+      })
+    }
+
+  }
+)
+
+
+runTest(
+  "knows what classes an element has",
+
+  ["./", "web-site", "web-element", "browser-bridge"],
+  function(expect, done, browserTask, Server, element, bridge) {
+
+    var visible = element(".greg", "Hi my name is Greg")
+
+    var invisible = element(".gina.tall", "Gina up here")
+
+    var server = new Server()
+
+    server.addRoute(
+      "get",
+      "/",
+      bridge.sendPage([
+        visible,
+        invisible
+      ])
+    )
+
+    server.start(9293)
+
+    browserTask("http://localhost:9293",
+      function(browser) {
+
+        browser.assertHasClass(
+          ".gina",
+          "tall",
+          checkMissing
+        )
+
+        function checkMissing() {
+          done.ish("knows when a class is present")
+          
+          browser.assertNoClass(
+            ".greg",
+            "tall",
+            browser.done,
+            server.stop,
+            done
+          )
+        }
+      }
+    )
+
+  }
+)
+
+
+
+runTest(
+  "can wait for a new page",
+  ["./", "web-element", "browser-bridge", "web-site", "nrtv-wait"],
+  function(expect, done, browse, element, BrowserBridge, Server, wait) {
+
+    var server = new Server()
+
+    server.addRoute("get", "/",
+      function(request, response) {
+        var bridge = new BrowserBridge()
+
+        var link = element("a.go", {href: "/maxim"}, "go")
+
+        bridge.sendPage(link)(null, response)
+      }
+    )
+
+    server.addRoute("get", "/maxim",
+      function(request, response) {
+        var bridge = new BrowserBridge()
+        bridge.asap(
+          bridge.defineFunction(
+            [wait.defineInBrowser(bridge)],
+            function(wait) {
+              var ticket = wait("start")
+              setTimeout(function() {
+                document.write("make bread not trips to the grocery store!")
+                wait("done", ticket)
+              }, 10)
+            }
+          )
+        )
+        bridge.sendPage()(null, response)
+      }
+    )
+
+    server.start(4444)
+
+    browse(
+      "http://localhost:4444",
+      function(browser) {
+
+        browser.click.andWaitForNewPage(".go", runChecks)
+
+        function runChecks() {
+          browser.assertText(
+            "body",
+            /bread not trips/,
+            browser.done,
+            server.stop,
+            done
+          )
+        }
+
+      }
+    )
+
+  }
+)
+
+
+
+runTest.define(
   "button-server",
-  ["web-element", "browser-bridge", "nrtv-server", "make-request"],
+  ["web-element", "browser-bridge", "web-site", "make-request"],
   function(element, BrowserBridge, Server, makeRequest) {
 
     var bridge = new BrowserBridge()
@@ -58,15 +243,15 @@ test.library.define(
   }
 )
 
-test.using(
+runTest(
   "a minion presses a button and reports back what happened",
-  ["./minions", "button-server", "nrtv-dispatcher"],
-  function(expect, done, minions, ButtonServer, Dispatcher) {
+  ["./start-server", "./api", "button-server", "nrtv-dispatcher"],
+  function(expect, done, startServer, api, ButtonServer, Dispatcher) {
 
     var app = new ButtonServer()
     var queue = new Dispatcher()
     app.start(7777)
-    minions.server.start(8888, queue)
+    var apiServer = startServer(8888, queue)
 
     queue.addTask(
       {host: "localhost:7777"},
@@ -91,51 +276,51 @@ test.using(
         expect(message).to.equal("a hey ahoy!")
         done()
         app.stop()
-        minions.server.stop()
+        apiServer.stop()
       },
       ["hi"]
     )
 
-    minions.halp(done)
+    halp(8888, done)
   }
 )
 
-test.using(
+runTest(
   "controlling minions through the API",
-  ["./minions"],
-  function(expect, done, minions) {
+  ["./start-server", "./api"],
+  function(expect, done, startServer, api) {
 
-    minions.server.start(8888)
+    var apiServer = startServer(8888)
 
-    var api = minions.api.at("http://localhost:8888")
-    minions.api.addTask(
+    var minions = api.at("http://localhost:8888")
+    minions.addTask(
       function(frameOfReference, minion, iframe) {
         minion.report("IT IS A VERY PRETTY DAY " + frameOfReference + "!")
       },
       ["for Fred"],
       function(message) {
         expect(message).to.equal("IT IS A VERY PRETTY DAY for Fred!")
-        minions.server.stop()
+        apiServer.stop()
         done()
       }
     )
 
-    minions.halp(done)
+    halp(8888, done)
   }
 )
 
 
 
-test.using(
+runTest(
   "retaining minions and reporting objects",
-  ["./minions", "nrtv-dispatcher"],
-  function(expect, done, minions, Dispatcher) {
+  ["./start-server", "./api", "nrtv-dispatcher"],
+  function(expect, done, startServer, api, Dispatcher) {
 
     var dispatcher = new Dispatcher()
 
-    minions.server.start(8888, dispatcher)
+    var server = startServer(8888, dispatcher)
 
-    var api = minions.api.at("http://localhost:8888")
+    var api = api.at("http://localhost:8888")
 
     api.retainMinion(
       function(minion) {
@@ -161,36 +346,36 @@ test.using(
         },
         function(yes) {
           expect(yes).to.match(/purd/)
-          minions.server.stop()
+          server.stop()
           done()          
         }
       )
     }
 
-    minions.halp(done)
+    halp(8888, done)
   }
 )
 
 
-test.using(
+runTest(
   "proxying websockets",
-  ["./minions", "nrtv-dispatcher", "nrtv-server", "get-socket", "browser-bridge"],
-  function(expect, done, minions, Dispatcher, Server, getSocket, BrowserBridge) {
+  ["./start-server", "nrtv-dispatcher", "web-site", "get-socket", "browser-bridge"],
+  function(expect, done, startServer, Dispatcher, Server, getSocket, BrowserBridge) {
 
-    var server = new Server()
+    var booServer = new Server()
 
     getSocket.handleConnections(
-      server,
+      booServer,
       function(socket) {
         socket.listen(runChecks)
       }
     )
 
-    server.start(6543)
+    booServer.start(6543)
 
     var queue = new Dispatcher()
 
-    minions.server.start(8888, queue)
+    var apiServer = startServer(8888, queue)
 
     // now we have the problem that addTask can't take modules. So we need to navigate to a page that does this shit?
 
@@ -208,7 +393,7 @@ test.using(
 
     bridge.asap(sendBoo)
 
-    server.addRoute("get", "/boo",
+    booServer.addRoute("get", "/boo",
       bridge.sendPage()
     )
 
@@ -222,12 +407,12 @@ test.using(
       function() {}
     )
 
-    minions.halp(done)
+    halp(8888, done)
 
     function runChecks(message) {
       expect(message).to.equal("boo!")
-      server.stop()
-      minions.server.stop()
+      booServer.stop()
+      apiServer.stop()
       done()
     }
   }

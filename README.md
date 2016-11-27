@@ -3,36 +3,22 @@ Do stuff in other peoples' browsers.
 Start a server:
 
     cd ~
-    npm install nrtv-minions
-    node nrtv-minions/start
+    npm install browser-task
+    node browser-task/start
 
-Start working by visiting http://localhost:9777/minions
+Start working by visiting http://localhost:9777/browser
 
 Add a task with the API:
 
-    var minions = require("nrtv-minions")
+    var browserTask = require("browser-task")
 
-    minions.api("http://localhost:9777").addTask(
-      function(minion) {
-        minion.visit("/")
-
-        minion.pressButton(
-          ".go",
-          reportBack
-        )
-
-        function() {
-          minion.report("ok")
-        }
-      },
-      function(message) {
-        if (message == "ok") {
-          console.log("Yay, everything is OK")
-        } else {
-          console.log("Something went wrong.")
-        }
+    browserTask(
+      "http://localhost:9777",
+      function(browser) {
+        browser.pressButton(".go")
       }
     )
+
 
 
 # Notes

@@ -1,2 +1,1 @@
-var minions = require("./")
-minions.server.start()
+require("nrtv-library")(require).using(["./start-server"], function(start) { start(9777) })

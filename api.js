@@ -230,18 +230,17 @@ module.exports = library.export(
         })
       }
 
-
     var api = {
       addTask: addTask,
       retainMinion: retainMinion,
-      installHandlers: installHandlers,
+      installOnWebSite: installHandlers,
       at: function(url) {
         if (this.host) {
           throw new Error("Already set api host to "+this.host)
         }
         this.host = url
         return this
-      }
+      },
     }
 
     return api

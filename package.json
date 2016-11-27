@@ -2,7 +2,7 @@
   "name": "browser-task",
   "version": "0.35.0",
   "description": "Do stuff in other peoples' browsers",
-  "main": "minions.js",
+  "main": "browser-task.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/erikpukinskis/browser-task.git"
@@ -11,7 +11,7 @@
     "nrtv-library": "*",
     "web-element": "*",
     "browser-bridge": "*",
-    "nrtv-server": "*",
+    "web-site": "*",
     "nrtv-single-use-socket": "*",
     "get-socket": "*",
     "nrtv-dispatcher": "*",
@@ -24,7 +24,7 @@
     "start": "node start.js"
   },
   "devDependencies": {
-    "nrtv-test": "*"
+    "run-test": "*"
   },
   "license": "ISC"
 }

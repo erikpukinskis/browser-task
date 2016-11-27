@@ -2,8 +2,8 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "nrtv-server", "nrtv-dispatcher", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy"],
-  function(SingleUseSocket, server, Dispatcher, api, makeRequest, getSocket, querystring, proxySocket) {
+  ["nrtv-single-use-socket", "web-site", "nrtv-dispatcher", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy", "./frame", "browser-bridge"],
+  function(SingleUseSocket, webSite, Dispatcher, api, makeRequest, getSocket, querystring, proxySocket, buildFrame, BrowserBridge) {
 
     var startedPort
     var minionIds = {}
@@ -15,9 +15,7 @@ module.exports = library.export(
         queue = new Dispatcher()
       }
 
-      SingleUseSocket.installOn(server)
-
-      server.addRoute(
+      webSite.addRoute(
         "get",
         "/minions",
         function(request, response) {
@@ -26,15 +24,13 @@ module.exports = library.export(
             var id = Math.random().toString(36).split(".")[1]
           } while (minionIds[id])
 
-          library.using(
-            ["./frame", library.reset("browser-bridge")],
-            function(buildFrame, bridge) {
+          minionIds[id] = true
 
-              var iframe = buildFrame(bridge, requestWork, id)
+          var bridge = new BrowserBridge()
 
-              bridge.sendPage(iframe)(request, response)
-            }
-          )
+          var iframe = buildFrame(bridge, requestWork, id)
+
+          bridge.sendPage(iframe)(request, response)
 
         }
       )
@@ -53,27 +49,27 @@ module.exports = library.export(
         )
       }
 
-      server.use(proxyHttpRequests)
+      webSite.use(proxyHttpRequests)
 
-      getSocket.handleConnections(server, proxyWebsockets)
+      SingleUseSocket.installOn(webSite)
 
-      api.installHandlers(server, queue)
+      getSocket.handleConnections(webSite, proxyWebsockets)
+
+      api.installOnWebSite(webSite, queue)
 
       startedPort = port || 9777
 
-      server.start(startedPort)
+      webSite.start(startedPort)
 
       console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
+
+      return webSite
     }
 
     function proxyWebsockets(socket, next) {
 
       var myUrl = socket.url
       
-      if (myUrl.match(/6543/)) {
-        throw new Error("HOW")
-      }
-
       var params = querystring.parse(myUrl.split("?")[1])
 
       var id = params.__nrtvMinionId
@@ -87,6 +83,7 @@ module.exports = library.export(
 
         proxySocket(socket, hostUrl)
       } else {
+        console.log("missed URL", myUrl)
         next()
       }
     }
@@ -120,17 +117,6 @@ module.exports = library.export(
       })
     }
 
-    function stop() {
-      server.stop()
-    }
-
-    return {
-      start: start,
-      stop: stop,
-      getPort: function() {
-        return startedPort
-      }
-    }
-
+    return start
   }
 )
