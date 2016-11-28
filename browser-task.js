@@ -73,7 +73,7 @@ module.exports = library.export(
         minion.resign(
           function finish() {
             delete stacks[minion.id]
-            callback()
+            callback && callback()
           }
         )
         minion.browserResigned = true
