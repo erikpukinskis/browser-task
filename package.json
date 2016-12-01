@@ -1,6 +1,6 @@
 {
   "name": "browser-task",
-  "version": "0.37.0",
+  "version": "0.38.0",
   "description": "Do stuff in other peoples' browsers",
   "main": "browser-task.js",
   "repository": {
