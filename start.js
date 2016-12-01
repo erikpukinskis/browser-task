@@ -1,1 +1,1 @@
-require("nrtv-library")(require).using(["./start-server"], function(start) { start(9777) })
+require("module-library")(require).using(["./start-server"], function(start) { start(9777) })

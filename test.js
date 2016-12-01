@@ -6,8 +6,7 @@ var runTest = require("run-test")(require)
 // runTest.only("proxying websockets")
 runTest.only("loads a page")
 
-
-runTest.failAfter(10000000)
+runTest.failAfter(10000)
 
 function halp(port, done) {
   console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
