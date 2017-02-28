@@ -218,7 +218,7 @@ module.exports = library.export(
           throw new Error("First argument to browser.assertText needs to be a selector for the element to search. You passed ", selector)
         }
 
-        var isString = typeof pattern != "string"
+        var isString = typeof pattern == "string"
         var isRegExp = !isString && pattern.constructor && pattern.constructor.name == "RegExp"
 
         if (!isString && !isRegExp) {
