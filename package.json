@@ -17,7 +17,7 @@
     "nrtv-dispatcher": "*",
     "make-request": "*",
     "guarantor": "*",
-    "nrtv-wait": "*"
+    "global-wait": "*"
   },
   "scripts": {
     "test": "node test.js",

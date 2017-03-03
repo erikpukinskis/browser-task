@@ -7,7 +7,7 @@ module.exports = library.export(
   [
     "nrtv-single-use-socket",
     "web-element",
-    "nrtv-wait"
+    "global-wait"
   ],
   function(SingleUseSocket, element, wait) {
 

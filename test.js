@@ -6,7 +6,7 @@ var runTest = require("run-test")(require)
 // runTest.only("proxying websockets")
 runTest.only("loads a page")
 
-runTest.failAfter(10000)
+runTest.failAfter(60000)
 
 function halp(port, done) {
   console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
@@ -129,7 +129,7 @@ runTest(
 
 runTest(
   "can wait for a new page",
-  ["./", "web-element", "browser-bridge", "web-site", "nrtv-wait"],
+  ["./", "web-element", "browser-bridge", "web-site", "global-wait"],
   function(expect, done, browse, element, BrowserBridge, Server, wait) {
 
     var server = new Server()
