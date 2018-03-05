@@ -30,8 +30,7 @@ module.exports = library.export(
 
           var iframe = buildFrame(bridge, requestWork, id)
 
-          bridge.sendPage(iframe)(request, response)
-
+          bridge.forResponse(response).send(iframe)
         }
       )
 

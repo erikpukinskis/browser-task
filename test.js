@@ -1,15 +1,17 @@
 var runTest = require("run-test")(require)
+var childProcess = require("child_process")
 
-// runTest.only("controlling minions through the API")
+runTest.only("controlling minions through the API")
 // runTest.only("a minion presses a button and reports back what happened")
 // runTest.only("retaining minions and reporting objects")
 // runTest.only("proxying websockets")
-runTest.only("loads a page")
+// runTest.only("loads a page")
+// runTest.only("knows what classes an element has")
 
 runTest.failAfter(60000)
 
 function halp(port, done) {
-  console.log("---\nExcuse me, human!\n\nYou have 10 seconds to open http://localhost:"+port+"/minions in a web\nbrowser so the tests can finish! Go!\n\nLove,\nComputer\n---")  
+  childProcess.exec("open http://localhost:"+port+"/minions")  
 }
 
 runTest(

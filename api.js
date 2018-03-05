@@ -58,7 +58,7 @@ module.exports = library.export(
           console.log("Resigning", id)
           minion.resign()
           delete retainedMinions[id]
-          response.send("ok!")
+          response.send({ok: true})
         }
       )
 

@@ -8,16 +8,16 @@
     "url": "https://github.com/erikpukinskis/browser-task.git"
   },
   "dependencies": {
-    "module-library": "*",
-    "web-element": "*",
     "browser-bridge": "*",
-    "web-site": "*",
-    "nrtv-single-use-socket": "*",
     "get-socket": "*",
-    "nrtv-dispatcher": "*",
-    "make-request": "*",
+    "global-wait": "^0.14.0",
     "guarantor": "*",
-    "global-wait": "*"
+    "make-request": "*",
+    "module-library": "*",
+    "nrtv-dispatcher": "*",
+    "nrtv-single-use-socket": "*",
+    "web-element": "*",
+    "web-site": "*"
   },
   "scripts": {
     "test": "node test.js",
