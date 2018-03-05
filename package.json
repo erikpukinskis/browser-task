@@ -14,8 +14,8 @@
     "guarantor": "*",
     "make-request": "*",
     "module-library": "*",
-    "nrtv-dispatcher": "*",
-    "nrtv-single-use-socket": "*",
+    "job-pool": "*",
+    "single-use-socket": "*",
     "web-element": "*",
     "web-site": "*"
   },

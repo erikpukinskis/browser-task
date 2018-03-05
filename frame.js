@@ -5,15 +5,15 @@ var library = require("module-library")(require)
 module.exports = library.export(
   "minion-frame",
   [
-    "nrtv-single-use-socket",
+    "single-use-socket",
     "web-element",
     "global-wait"
   ],
   function(SingleUseSocket, element, wait) {
 
-    function buildFrame(bridge, requestWork, id) {
+    function buildFrame(site, bridge, requestWork, id) {
 
-      var socket = new SingleUseSocket()
+      var socket = new SingleUseSocket(site)
 
       var _this = this
 

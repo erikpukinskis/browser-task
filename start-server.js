@@ -2,20 +2,22 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["nrtv-single-use-socket", "web-site", "nrtv-dispatcher", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy", "./frame", "browser-bridge"],
-  function(SingleUseSocket, webSite, Dispatcher, api, makeRequest, getSocket, querystring, proxySocket, buildFrame, BrowserBridge) {
+  ["single-use-socket", "web-site", "job-pool", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy", "./frame", "browser-bridge"],
+  function(SingleUseSocket, WebSite, JobPool, api, makeRequest, getSocket, querystring, proxySocket, buildFrame, BrowserBridge) {
 
     var startedPort
     var minionIds = {}
     var hostUrls = {}
 
-    function start(port, queue) {
+    var site = new WebSite()
 
-      if (!queue) {
-        queue = new Dispatcher()
+    function start(port, jobPool) {
+
+      if (!jobPool) {
+        jobPool = new JobPool()
       }
 
-      webSite.addRoute(
+      site.addRoute(
         "get",
         "/minions",
         function(request, response) {
@@ -28,14 +30,14 @@ module.exports = library.export(
 
           var bridge = new BrowserBridge()
 
-          var iframe = buildFrame(bridge, requestWork, id)
+          var iframe = buildFrame(site, bridge, requestWork, id)
 
           bridge.forResponse(response).send(iframe)
         }
       )
 
       function requestWork(callback, id) {
-        queue.requestWork(
+        jobPool.requestWork(
           function(task) {
             var host = host = task.options.host
 
@@ -48,21 +50,21 @@ module.exports = library.export(
         )
       }
 
-      webSite.use(proxyHttpRequests)
+      site.use(proxyHttpRequests)
 
-      SingleUseSocket.installOn(webSite)
+      SingleUseSocket.installOn(site)
 
-      getSocket.handleConnections(webSite, proxyWebsockets)
+      getSocket.handleConnections(site, proxyWebsockets)
 
-      api.installOnWebSite(webSite, queue)
+      api.installOnWebSite(site, jobPool)
 
       startedPort = port || 9777
 
-      webSite.start(startedPort)
+      site.start(startedPort)
 
       console.log("Visit http://localhost:"+startedPort+" in a web browser to start working")
 
-      return webSite
+      return site
     }
 
     function proxyWebsockets(socket, next) {

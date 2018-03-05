@@ -1,12 +1,12 @@
 var runTest = require("run-test")(require)
 var childProcess = require("child_process")
 
-runTest.only("controlling minions through the API")
+// runTest.only("controlling minions through the API")
 // runTest.only("a minion presses a button and reports back what happened")
 // runTest.only("retaining minions and reporting objects")
 // runTest.only("proxying websockets")
 // runTest.only("loads a page")
-// runTest.only("knows what classes an element has")
+runTest.only("knows what classes an element has")
 
 runTest.failAfter(60000)
 
@@ -35,7 +35,7 @@ runTest(
     }, "click me!")
 
     server.addRoute("get", "/",
-      bridge.sendPage(butt)
+      bridge.requestHandler(butt)
     )
 
     server.start(8818)
@@ -82,24 +82,24 @@ runTest(
   "knows what classes an element has",
 
   ["./", "web-site", "web-element", "browser-bridge"],
-  function(expect, done, browserTask, Server, element, bridge) {
+  function(expect, done, browserTask, WebSite, element, bridge) {
 
     var visible = element(".greg", "Hi my name is Greg")
 
     var invisible = element(".gina.tall", "Gina up here")
 
-    var server = new Server()
+    var site = new WebSite()
 
-    server.addRoute(
+    site.addRoute(
       "get",
       "/",
-      bridge.sendPage([
+      bridge.requestHandler([
         visible,
         invisible
       ])
     )
 
-    server.start(9293)
+    site.start(9293)
 
     browserTask("http://localhost:9293",
       function(browser) {
@@ -142,7 +142,7 @@ runTest(
 
         var link = element("a.go", {href: "/maxim"}, "go")
 
-        bridge.sendPage(link)(null, response)
+        bridge.requestHandler(link)(null, response)
       }
     )
 
@@ -161,7 +161,7 @@ runTest(
             }
           )
         )
-        bridge.sendPage()(null, response)
+        bridge.requestHandler()(null, response)
       }
     )
 
@@ -229,7 +229,7 @@ runTest.define(
         "O hai"
       )
 
-      server.addRoute("get", "/", bridge.sendPage(butt))
+      server.addRoute("get", "/", bridge.requestHandler(butt))
 
       this.start = function(port) {
         server.start(port)
@@ -246,11 +246,11 @@ runTest.define(
 
 runTest(
   "a minion presses a button and reports back what happened",
-  ["./start-server", "./api", "button-server", "nrtv-dispatcher"],
-  function(expect, done, startServer, api, ButtonServer, Dispatcher) {
+  ["./start-server", "./api", "button-server", "job-pool"],
+  function(expect, done, startServer, api, ButtonServer, JobPool) {
 
     var app = new ButtonServer()
-    var queue = new Dispatcher()
+    var queue = new JobPool()
     app.start(7777)
     var apiServer = startServer(8888, queue)
 
@@ -314,12 +314,12 @@ runTest(
 
 runTest(
   "retaining minions and reporting objects",
-  ["./start-server", "./api", "nrtv-dispatcher"],
-  function(expect, done, startServer, api, Dispatcher) {
+  ["./start-server", "./api", "job-pool"],
+  function(expect, done, startServer, api, JobPool) {
 
-    var dispatcher = new Dispatcher()
+    var JobPool = new JobPool()
 
-    var server = startServer(8888, dispatcher)
+    var server = startServer(8888, JobPool)
 
     var api = api.at("http://localhost:8888")
 
@@ -341,7 +341,7 @@ runTest(
     )
 
     function verifyFREEDOM() {
-      dispatcher.addTask(
+      JobPool.addTask(
         function(minion) {
           minion.report("purd says, what purd has to say")
         },
@@ -360,8 +360,8 @@ runTest(
 
 runTest(
   "proxying websockets",
-  ["./start-server", "nrtv-dispatcher", "web-site", "get-socket", "browser-bridge"],
-  function(expect, done, startServer, Dispatcher, Server, getSocket, BrowserBridge) {
+  ["./start-server", "job-pool", "web-site", "get-socket", "browser-bridge"],
+  function(expect, done, startServer, JobPool, Server, getSocket, BrowserBridge) {
 
     var booServer = new Server()
 
@@ -374,7 +374,7 @@ runTest(
 
     booServer.start(6543)
 
-    var queue = new Dispatcher()
+    var queue = new JobPool()
 
     var apiServer = startServer(8888, queue)
 
@@ -395,7 +395,7 @@ runTest(
     bridge.asap(sendBoo)
 
     booServer.addRoute("get", "/boo",
-      bridge.sendPage()
+      bridge.requestHandler()
     )
 
     queue.addTask(

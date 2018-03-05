@@ -2,13 +2,13 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "minion-api-client",
-  ["make-request", "nrtv-dispatcher", "http", "guarantor"],
-  function(makeRequest, Dispatcher, http, guarantor) {
+  ["make-request", "job-pool", "http", "guarantor"],
+  function(makeRequest, JobPool, http, guarantor) {
 
 
     // SERVER
 
-    function installHandlers(server, dispatcher) {
+    function installHandlers(server, jobPool) {
 
       server.addRoute(
         "post",
@@ -18,7 +18,7 @@ module.exports = library.export(
           task.callback = function(message) {
             response.send(message)
           }
-          dispatcher.addTask(task)
+          jobPool.addTask(task)
         }
       )
 
@@ -29,7 +29,7 @@ module.exports = library.export(
         "/retainers",
         function(request, response) {
 
-          var retainer = dispatcher.retainWorker()
+          var retainer = jobPool.retainWorker()
 
           do {
             var id = Math.random().toString(36).split(".")[1].substr(0,5)
@@ -96,7 +96,7 @@ module.exports = library.export(
     // CLIENT
 
     function addTask() {
-      var task = Dispatcher.buildTask(arguments)
+      var task = JobPool.buildTask(arguments)
       _addTask(task)
     }
 
@@ -208,7 +208,7 @@ module.exports = library.export(
 
     ApiRetainer.prototype.addTask =
       function() {
-        var task = Dispatcher.buildTask(arguments)
+        var task = JobPool.buildTask(arguments)
         var prefix = "/retainers/"+this.id
         _addTask(task, prefix)
       }
