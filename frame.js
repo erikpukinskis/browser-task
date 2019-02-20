@@ -70,6 +70,58 @@ module.exports = library.export(
         socket.assignedTask = task
       }
 
+      bridge.domReady(
+        function() {
+          var doc = document.querySelector("iframe.sansa").contentWindow.document
+          doc.open()
+          doc.write("<html><body>Ready for work.</body></html")
+          doc.close()
+          document.querySelector(".blinkenlicht").classList.add("on")
+        })
+
+      bridge.addToHead(
+        element.stylesheet([
+          element.style(
+            ".box",{
+              "padding": "24px 23px 66px 23px",
+              "border-radius": "6px",
+              "background": "lightgray",
+              "display": "inline-block",
+            }),
+
+          element.style(
+            ".screen",{
+              "background": "white",
+              "position": "relative",
+              "border-radius": "2px",
+            }),
+
+          element.style(
+            ".blinkenlicht",{
+            "position": "absolute",
+            "bottom": "-20px",
+            "right": "1px",
+            "content": "\"\"",
+            "width": "10px",
+            "height": "4px",
+            "background": "gray",
+            "z-index": "1",
+
+            ".on": {
+              "background": "lawngreen",
+              "box-shadow": "0 0 4px 3px #c3eaff",
+            }
+          }),
+
+          element.style(
+            "iframe.sansa",{
+            "border-width": "10px 8px 40px 8px",
+            "vertical-align": "top",
+            "border-radius": "2px",
+            "z-index": "0",
+          }),
+        ]))
+
       var doWork = bridge.defineFunction(
         [
           socket.defineSendOn(bridge),
@@ -118,7 +170,10 @@ module.exports = library.export(
         .withArgs(doWork)
       )
 
-      return element("iframe.sansa")
+      return element(".box",
+        element(".screen",
+          element("iframe.sansa"),
+          element(".blinkenlicht")))
     }
 
     return buildFrame
