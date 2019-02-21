@@ -83,6 +83,7 @@ module.exports = library.export(
         element.stylesheet([
           element.style(
             ".box",{
+              "margin": "30px",
               "padding": "24px 23px 34px 23px",
               "border-radius": "6px",
               "background": "lightgray",
