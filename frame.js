@@ -83,7 +83,7 @@ module.exports = library.export(
         element.stylesheet([
           element.style(
             ".box",{
-              "padding": "24px 23px 66px 23px",
+              "padding": "24px 23px 34px 23px",
               "border-radius": "6px",
               "background": "lightgray",
               "display": "inline-block",
@@ -99,8 +99,8 @@ module.exports = library.export(
           element.style(
             ".blinkenlicht",{
             "position": "absolute",
-            "bottom": "-20px",
-            "right": "1px",
+            "bottom": "-18px",
+            "left": "4px",
             "content": "\"\"",
             "width": "10px",
             "height": "4px",
@@ -112,6 +112,16 @@ module.exports = library.export(
               "box-shadow": "0 0 4px 3px #c3eaff",
             }
           }),
+
+          element.style(
+            ".logo",{
+            "position": "absolute",
+            "bottom": "-23px",
+            "right": "0",
+            "color": "#6f5e5e",
+            "font-family": "Impact",
+            "font-size": "11px",
+            }),
 
           element.style(
             "iframe.sansa",{
@@ -173,7 +183,8 @@ module.exports = library.export(
       return element(".box",
         element(".screen",
           element("iframe.sansa"),
-          element(".blinkenlicht")))
+          element(".blinkenlicht"),
+          element(".logo", "BROWSER TASK 4000")))
     }
 
     return buildFrame
