@@ -108,14 +108,42 @@ module.exports = library.export(
         var url = request.url
       }
 
+      var HEADER_BLACKLIST = [
+        "accept-encoding",
+        "accept-language",
+        "accept"]
+
+      var headers = {}
+      for (var key in request.headers) {
+        var isBlocked = contains(
+          HEADER_BLACKLIST,
+          key)
+        if (isBlocked) {
+          continue }
+        headers[key] = request.headers[key] }
+
       makeRequest({
         url: url,
         method: request.method,
+        headers: headers,
         data: request.body,
-        contentType: request.header("content-type")
       }, function(body) {
         response.send(body)
       })
+    }
+
+    function contains(array, value) {
+      if (!Array.isArray(array)) {
+        throw new Error("looking for "+JSON.stringify(value)+" in "+JSON.stringify(array)+", which is supposed to be an array. But it's not.")
+      }
+      var index = -1;
+      var length = array.length;
+      while (++index < length) {
+        if (array[index] == value) {
+          return true;
+        }
+      }
+      return false;
     }
 
     return start

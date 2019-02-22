@@ -6,7 +6,8 @@ library.using([
   "child_process"],
   function(start, childProcess) {
     start(9777)
-    if (process.argv[2] == "--headless") {
+    var isHeadless = process.argv.indexOf("--headless") >= 0
+    if (isHeadless) {
       return }
     var url = "http://localhost:9777/minions"
     childProcess.exec(
