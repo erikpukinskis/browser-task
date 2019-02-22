@@ -9,19 +9,20 @@
   },
   "dependencies": {
     "browser-bridge": "*",
-    "get-socket": "*",
+    "get-socket": "^0.24.0",
     "global-wait": "^0.14.0",
     "guarantor": "*",
+    "job-pool": "*",
     "make-request": "*",
     "module-library": "*",
-    "job-pool": "*",
-    "single-use-socket": "*",
+    "single-use-socket": "^0.27.0",
     "web-element": "*",
     "web-site": "*"
   },
   "scripts": {
-    "test": "node test.js",
-    "start": "node start.js"
+    "test": "node test",
+    "start": "node start",
+    "server": "node start --headless"
   },
   "devDependencies": {
     "run-test": "*"

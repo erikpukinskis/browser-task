@@ -50,6 +50,16 @@ module.exports = library.export(
 
       bridge.asap(socket.defineSendOn(bridge).withArgs(workRequest))
 
+      bridge.asap([
+        socket.defineCloseHandlerOn(bridge)],
+        function(onClose) {
+          onClose(function() {
+            document.querySelector(".blinkenlicht").classList.remove("on")
+            document.querySelector(".screen").classList.add("off")
+          })
+        })
+
+
 
       // Sending work
 
@@ -95,6 +105,10 @@ module.exports = library.export(
               "background": "white",
               "position": "relative",
               "border-radius": "2px",
+
+              ".off": {
+                "background": "black",
+              },
             }),
 
           element.style(
