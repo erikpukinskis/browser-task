@@ -8,14 +8,14 @@
     "url": "https://github.com/erikpukinskis/browser-task.git"
   },
   "dependencies": {
-    "browser-bridge": "*",
+    "browser-bridge": "^0.155.0",
     "get-socket": "^0.24.0",
-    "global-wait": "^0.14.0",
+    "global-wait": "^0.16.0",
     "guarantor": "*",
     "job-pool": "*",
     "make-request": "*",
     "module-library": "*",
-    "single-use-socket": "^0.27.0",
+    "single-use-socket": "^0.29.0",
     "web-element": "*",
     "web-site": "*"
   },
