@@ -122,13 +122,6 @@ module.exports = library.export(
         if (isBlocked) {
           continue }
         headers[key] = request.headers[key] }
-        headers.date = null
-
-      if (url == "http://localhost:5111/more") {
-        debugger
-      }
-
-      headers["Cache-Control"] = "max-age=0"
 
       makeRequest({
         url: url,
