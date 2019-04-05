@@ -29,6 +29,7 @@ module.exports = library.export(
           minionIds[id] = true
 
           var bridge = new BrowserBridge()
+          bridge.addToHead("<title>BROWSER TASK 4000</title>")
 
           var iframe = buildFrame(site, bridge, requestWork, id)
 
@@ -121,13 +122,26 @@ module.exports = library.export(
         if (isBlocked) {
           continue }
         headers[key] = request.headers[key] }
+        headers.date = null
+
+      if (url == "http://localhost:5111/more") {
+        debugger
+      }
+
+      headers["Cache-Control"] = "max-age=0"
 
       makeRequest({
         url: url,
         method: request.method,
         headers: headers,
         data: request.body,
-      }, function(body) {
+      }, function(body, res, error) {
+        if (error) {
+          console.log("! error on "+url+": "+error)
+          return
+        }
+        response.statusCode = res.statusCode
+        response.headers = res.headers
         response.send(body)
       })
     }
