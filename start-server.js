@@ -2,8 +2,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "minion-server",
-  ["single-use-socket", "web-site", "job-pool", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy", "./frame", "browser-bridge"],
-  function(SingleUseSocket, WebSite, JobPool, api, makeRequest, getSocket, querystring, proxySocket, buildFrame, BrowserBridge) {
+  ["single-use-socket", "web-site", "job-pool", "./api", "make-request", "get-socket", "querystring", "./websocket-proxy", "./controllable-iframe", "browser-bridge"],
+  function(SingleUseSocket, WebSite, JobPool, api, makeRequest, getSocket, querystring, proxySocket, buildControllableIframe, BrowserBridge) {
 
     var startedPort
     var minionIds = {}
@@ -31,7 +31,7 @@ module.exports = library.export(
           var bridge = new BrowserBridge()
           bridge.addToHead("<title>BROWSER TASK 4000</title>")
 
-          var iframe = buildFrame(site, bridge, requestWork, id)
+          var iframe = buildControllableIframe(site, bridge, requestWork, id)
 
           bridge.forResponse(response).send(iframe)
         }

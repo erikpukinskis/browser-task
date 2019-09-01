@@ -3,7 +3,7 @@ var library = require("module-library")(require)
 // rename workspace?
 
 module.exports = library.export(
-  "minion-frame",
+  "controllable-iframe",
   [
     "single-use-socket",
     "web-element",
@@ -11,11 +11,12 @@ module.exports = library.export(
   ],
   function(SingleUseSocket, element, wait) {
 
-    function buildFrame(site, bridge, requestWork, id) {
+    function buildControllableIframe(site, bridge, requestWork, id) {
 
       var socket = new SingleUseSocket(site)
 
       var _this = this
+
 
       // Requesting work
 
@@ -60,7 +61,6 @@ module.exports = library.export(
         })
 
 
-
       // Sending work
 
       function sendAJob(task) {
@@ -90,62 +90,7 @@ module.exports = library.export(
         })
 
       bridge.addToHead(
-        element.stylesheet([
-          element.style(
-            ".box",{
-              "margin": "30px",
-              "padding": "24px 23px 34px 23px",
-              "border-radius": "6px",
-              "background": "lightgray",
-              "display": "inline-block",
-            }),
-
-          element.style(
-            ".screen",{
-              "background": "white",
-              "position": "relative",
-              "border-radius": "2px",
-
-              ".off": {
-                "background": "black",
-              },
-            }),
-
-          element.style(
-            ".blinkenlicht",{
-            "position": "absolute",
-            "bottom": "-18px",
-            "left": "4px",
-            "content": "\"\"",
-            "width": "10px",
-            "height": "4px",
-            "background": "gray",
-            "z-index": "1",
-
-            ".on": {
-              "background": "lawngreen",
-              "box-shadow": "0 0 4px 3px #c3eaff",
-            }
-          }),
-
-          element.style(
-            ".logo",{
-            "position": "absolute",
-            "bottom": "-23px",
-            "right": "0",
-            "color": "#6f5e5e",
-            "font-family": "Impact",
-            "font-size": "11px",
-            }),
-
-          element.style(
-            "iframe.sansa",{
-            "border-width": "10px 8px 40px 8px",
-            "vertical-align": "top",
-            "border-radius": "2px",
-            "z-index": "0",
-          }),
-        ]))
+        stylesheet)
 
       var doWork = bridge.defineFunction(
         [
@@ -188,12 +133,14 @@ module.exports = library.export(
         }
       )
 
-
       bridge.asap(
         socket
         .defineListenOn(bridge)
         .withArgs(doWork)
       )
+
+
+      // Building the DOM struture
 
       return element(".box",
         element(".screen",
@@ -202,6 +149,63 @@ module.exports = library.export(
           element(".logo", "BROWSER TASK 4000")))
     }
 
-    return buildFrame
+    var stylesheet = element.stylesheet([
+      element.style(
+        ".box",{
+          "margin": "30px",
+          "padding": "24px 23px 34px 23px",
+          "border-radius": "6px",
+          "background": "lightgray",
+          "display": "inline-block",
+        }),
+
+      element.style(
+        ".screen",{
+          "background": "white",
+          "position": "relative",
+          "border-radius": "2px",
+
+          ".off": {
+            "background": "black",
+          },
+        }),
+
+      element.style(
+        ".blinkenlicht",{
+        "position": "absolute",
+        "bottom": "-18px",
+        "left": "4px",
+        "content": "\"\"",
+        "width": "10px",
+        "height": "4px",
+        "background": "gray",
+        "z-index": "1",
+
+        ".on": {
+          "background": "lawngreen",
+          "box-shadow": "0 0 4px 3px #c3eaff",
+        }
+      }),
+
+      element.style(
+        ".logo",{
+        "position": "absolute",
+        "bottom": "-23px",
+        "right": "0",
+        "color": "#6f5e5e",
+        "font-family": "Impact",
+        "font-size": "11px",
+        }),
+
+      element.style(
+        "iframe.sansa",{
+        "border-width": "10px 8px 40px 8px",
+        "vertical-align": "top",
+        "border-radius": "2px",
+        "z-index": "0",
+      }),
+    ])
+
+    return buildControllableIframe
   }
 )
