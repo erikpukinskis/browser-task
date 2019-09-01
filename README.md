@@ -15,12 +15,26 @@ Add a task with the API:
 ```javascript
 var browserTask = require("browser-task")
 
-browserTask(
+var browser = browserTask(
   "http://localhost:9777",
-  function(browser) {
-    browser.pressButton(".go")
-  }
-)
+  function() {
+    browser.pressButton(".go", thenExpectSomething)})
+
+function thenExpectSomething() {
+  browser.assertText(".my-div", "BANG!",
+  thenBeDone)}
+  
+function thenBeDone (){
+  browser.done()}
+```
+
+## Methods
+
+```
+browser.assertHasClas("#my-selector", "some-class-name", callback)
+browser.assertNoClass(...)
+browser.pressButton("#some-button", callback)
+browser.done()
 ```
 
 ### Screencast
