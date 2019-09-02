@@ -8,16 +8,9 @@
     "url": "https://github.com/erikpukinskis/browser-task.git"
   },
   "dependencies": {
-    "browser-bridge": "^0.168.0",
-    "get-socket": "^0.24.0",
-    "global-wait": "^0.16.0",
-    "guarantor": "*",
+    "make-request": "*",
     "job-pool": "*",
-    "make-request": "^0.44.0",
-    "module-library": "*",
-    "single-use-socket": "^0.29.0",
-    "web-element": "*",
-    "web-site": "*"
+    "guarantor": "*"
   },
   "scripts": {
     "test": "node test",
@@ -25,7 +18,14 @@
     "server": "node start --headless"
   },
   "devDependencies": {
-    "run-test": "*"
+    "run-test": "*",
+    "browser-bridge": "^0.168.0",
+    "get-socket": "^0.24.0",
+    "global-wait": "^0.16.0",
+    "module-library": "*",
+    "single-use-socket": "^0.29.0",
+    "web-element": "*",
+    "web-site": "*"
   },
   "license": "ISC"
 }
