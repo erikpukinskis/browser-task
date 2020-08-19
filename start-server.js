@@ -37,6 +37,11 @@ module.exports = library.export(
         }
       )
 
+      site.addRoute(
+        "get",
+        "/favicon.ico",
+        site.sendFile(__dirname, 'favicon.ico'))
+
       function requestWork(callback, id) {
         jobPool.requestWork(
           function(task) {
