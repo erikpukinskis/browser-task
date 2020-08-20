@@ -11,10 +11,13 @@ module.exports = library.export(
   ],
   function(SingleUseSocket, element, wait) {
 
-    function buildControllableIframe(site, bridge, requestWork, id) {
+    function buildControllableIframe(site, bridge, requestWork, id, onSocket, onSocketClose) {
 
       var socket = new SingleUseSocket(site)
+      console.log("Building iframe. Socket id is", socket.id)
 
+      onSocket(socket)
+      socket.onClose(onSocketClose)
       var _this = this
 
 
@@ -64,6 +67,9 @@ module.exports = library.export(
       // Sending work
 
       function sendAJob(task) {
+        if (!socket.identifier) {
+          throw new Error("socket has no identifier")
+        }
         console.log("\n______\nMINION on "+socket.identifier+" is getting work:\n")
 
         if (!task.funcSource) {
@@ -122,7 +128,7 @@ module.exports = library.export(
               sendSocketMessage(JSON.stringify(object))
             },
             wait: wait
-          }      
+          }
 
           var func = eval("f="+task.source)
 

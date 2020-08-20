@@ -8,9 +8,9 @@
     "url": "https://github.com/erikpukinskis/browser-task.git"
   },
   "dependencies": {
-    "make-request": "*",
+    "guarantor": "*",
     "job-pool": "*",
-    "guarantor": "*"
+    "make-request": "^0.52.0"
   },
   "scripts": {
     "test": "node test",
@@ -23,7 +23,7 @@
     "get-socket": "^0.24.0",
     "global-wait": "^0.16.0",
     "module-library": "*",
-    "single-use-socket": "^0.29.0",
+    "single-use-socket": "^0.30.0",
     "web-element": "*",
     "web-site": "*"
   },

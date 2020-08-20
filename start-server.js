@@ -11,6 +11,15 @@ module.exports = library.export(
 
     var site = new WebSite()
 
+    // We track which sockets _we_ have opened so we can give good error messages when there's an orphan socket.
+    var sockets = {}
+    function registerSocket(socket) {
+      sockets[socket.id] = socket
+    }
+    function resignSocket(socket) {
+      delete sockets[socket.id]
+    }
+
     function start(port, jobPool) {
 
       if (!jobPool) {
@@ -31,7 +40,7 @@ module.exports = library.export(
           var bridge = new BrowserBridge()
           bridge.addToHead("<title>BROWSER TASK 4000</title>")
 
-          var iframe = buildControllableIframe(site, bridge, requestWork, id)
+          var iframe = buildControllableIframe(site, bridge, requestWork, id, registerSocket, resignSocket)
 
           bridge.forResponse(response).send(iframe)
         }
@@ -76,22 +85,27 @@ module.exports = library.export(
     function proxyWebsockets(socket, next) {
 
       var myUrl = socket.url
-      
+
       var params = querystring.parse(myUrl.split("?")[1])
 
-      var id = params.__nrtvMinionId
+      var minionId = params.__nrtvMinionId
+      var socketId = params.__nrtvSingleUseSocketIdentifier
 
-      if (id) {
-        var hostUrl = hostUrls[id]
+      if (minionId) {
+        var hostUrl = hostUrls[minionId]
 
         if (!hostUrl) {
-          throw new Error("Tried to proxy websocket connection from minion "+id+" but the task didn't set a host?")
+          throw new Error("Tried to proxy websocket connection from minion "+minionId+" but the task didn't set a host?")
         }
 
+        console.log("Proxying minion socket connection request", myUrl, "to", hostUrl)
+
         proxySocket(socket, hostUrl)
-      } else {
-        console.log("missed URL", myUrl)
+      } else if (socketId in sockets) {
+        console.log("Heard back from a client:", socketId)
         next()
+      } else {
+        throw new Error("Unrecognized socket connection request:", myUrl)
       }
     }
 

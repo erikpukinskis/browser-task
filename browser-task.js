@@ -6,7 +6,7 @@ module.exports = library.export(
   function(api, guarantor) {
 
     var log = console.outdent || log
-    
+
     var stacks = {}
 
     function browserTask(url, callback, options) {
@@ -194,7 +194,7 @@ module.exports = library.export(
             throw new Error("You wanted the element that matches "+selector+" to "+goal+" but no elements did.")
           }
           callback(element)
-        }          
+        }
       )
 
     }
@@ -209,7 +209,7 @@ module.exports = library.export(
       }
 
       return callbacks
-    }      
+    }
 
     Browser.prototype.assertText =
       function(selector, pattern, callback1, callback2) {
@@ -224,7 +224,7 @@ module.exports = library.export(
         if (!isString && !isRegExp) {
           throw new Error("Second argument to browser.assertText needs to be a string or a regular expression to search for. You passed "+pattern)
         }
-        
+
         assertMinion(this, "assertText")
         assertRetained(this)
 
