@@ -35,7 +35,7 @@ module.exports = library.export(
             var id = Math.random().toString(36).split(".")[1].substr(0,5)
           } while(retainedMinions[id])
 
-          console.log("Retained", id)
+          console.log("RETAINED minion", id)
 
           retainedMinions[id] = retainer
 
@@ -52,10 +52,10 @@ module.exports = library.export(
           var id = request.params.id
           var minion = retainedMinions[id]
           if (!minion) {
-            console.log("Tried to resign", id, "but it is long gone.")
+            console.log("Tried to resign minion", id, "but it is long gone.")
             return
           }
-          console.log("Resigning", id)
+          console.log("RESIGNED minion", id)
           minion.resign()
           delete retainedMinions[id]
           response.send({ok: true})
@@ -170,7 +170,7 @@ module.exports = library.export(
         path: "/retainers",
       },
       function(response) {
-        console.log("Retained", response.id)
+        console.log("RETAINED", response.id)
         callback(
           new ApiRetainer(response.id)
         )

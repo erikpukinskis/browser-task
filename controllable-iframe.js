@@ -67,10 +67,10 @@ module.exports = library.export(
       // Sending work
 
       function sendAJob(task) {
-        if (!socket.identifier) {
+        if (!socket.id) {
           throw new Error("socket has no identifier")
         }
-        console.log("\n______\nMINION on "+socket.identifier+" is getting work:\n")
+        console.log("\n______\nMINION on "+socket.id+" is getting work:\n")
 
         if (!task.funcSource) {
           task.funcSource = task.func.toString()
