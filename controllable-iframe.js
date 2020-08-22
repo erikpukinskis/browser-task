@@ -50,10 +50,6 @@ module.exports = library.export(
         ).withArgs(id)
       )
 
-      var workRequest = JSON.stringify({__nrtvWorkRequest: "can i haz work?"})
-
-      bridge.asap(socket.defineSendOn(bridge).withArgs(workRequest))
-
       bridge.asap([
         socket.defineCloseHandlerOn(bridge)],
         function(onClose) {
@@ -87,7 +83,10 @@ module.exports = library.export(
       }
 
       bridge.domReady(
-        function() {
+        [socket.defineSendOn(bridge)],
+        function(send) {
+          var workRequest = JSON.stringify({__nrtvWorkRequest: "can i haz work?"})
+          send(workRequest)
           var doc = document.querySelector("iframe.sansa").contentWindow.document
           doc.open()
           doc.write("<html><body>Ready for work.</body></html")
