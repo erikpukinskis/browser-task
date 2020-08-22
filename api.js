@@ -10,6 +10,7 @@ module.exports = library.export(
 
     function installHandlers(server, jobPool) {
 
+      // Called when we just do a simple addTask without retaining a worker. Adds the task to the global pool
       server.addRoute(
         "post",
         "/tasks",
@@ -62,6 +63,7 @@ module.exports = library.export(
         }
       )
 
+      // Looks up a specific retained worker, which is a job-pool Retainer.
       server.addRoute(
         "post",
         "/retainers/:id/tasks",
@@ -100,6 +102,8 @@ module.exports = library.export(
       _addTask(task)
     }
 
+    // Send a JobPool "task" via HTTP to an API server. This either will just be a plain task for any old worker to take, or it will have a prefix if this task is for a specific worker.
+    // We call this _addTask function from both the exported addTask function and the addTask method on the ApiRetainer class.
     function _addTask(task, prefix) {
       var source = task.func.toString()
 
