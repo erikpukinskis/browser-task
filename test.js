@@ -1,28 +1,29 @@
 var runTest = require("run-test")(require)
 var childProcess = require("child_process")
 
-// runTest.only("controlling minions through the API")
+// runTest.only("loads a page")
+// runTest.only("knows what classes an element has")
+runTest.only("can wait for a new page")
 // runTest.only("a minion presses a button and reports back what happened")
+// runTest.only("controlling minions through the API")
 // runTest.only("retaining minions and reporting objects")
 // runTest.only("proxying websockets")
-// runTest.only("loads a page")
-runTest.only("knows what classes an element has")
 
 runTest.failAfter(60000)
 
-function halp(port, done) {
-  childProcess.exec("open http://localhost:"+port+"/minions")  
+function halp(port) {
+  childProcess.exec("open http://localhost:"+port+"/minions")
 }
 
 runTest(
   "loads a page",
 
   ["./", "web-site", "web-element", "browser-bridge", "./start-server", "./api"],
-  function(expect, done, browserTask, Server, element, bridge, startServer, api) {
+  function(expect, done, browserTask, WebSite, element, BrowserBridge, startServer, api) {
 
     var apiServer = startServer(8888)
-
-    var server = new Server()
+    var site = new WebSite()
+    var bridge = new BrowserBridge()
 
     var morph = bridge.defineFunction(
       function() {
@@ -34,15 +35,15 @@ runTest(
       onclick: morph.evalable()
     }, "click me!")
 
-    server.addRoute("get", "/",
+    site.addRoute("get", "/",
       bridge.requestHandler(butt)
     )
 
-    server.start(8818)
+    site.start(8818)
 
     var browser = browserTask(
       "http://localhost:8818",
-      function() {        
+      function() {
         browser.assertText(
           "button",
           /click me/,
@@ -52,7 +53,7 @@ runTest(
       {server: "http://localhost:8888"}
     )
 
-    halp(8888, done)
+    halp(8888)
 
     function pressButton() {
       browser.pressButton("button", checkText)
@@ -68,7 +69,7 @@ runTest(
 
     function finish() {
       browser.done(function() {
-        server.stop()
+        site.stop()
         apiServer.stop()
         done()
       })
@@ -81,14 +82,16 @@ runTest(
 runTest(
   "knows what classes an element has",
 
-  ["./", "web-site", "web-element", "browser-bridge"],
-  function(expect, done, browserTask, WebSite, element, bridge) {
+  ["./", "web-site", "web-element", "browser-bridge", "./start-server", "job-pool"],
+  function(expect, done, browserTask, WebSite, element, BrowserBridge, startServer, JobPool) {
 
     var visible = element(".greg", "Hi my name is Greg")
 
     var invisible = element(".gina.tall", "Gina up here")
 
+    var apiServer = startServer(8888)
     var site = new WebSite()
+    var bridge = new BrowserBridge()
 
     site.addRoute(
       "get",
@@ -112,17 +115,21 @@ runTest(
 
         function checkMissing() {
           done.ish("knows when a class is present")
-          
+
           browser.assertNoClass(
             ".greg",
             "tall",
             browser.done,
-            server.stop,
+            site.stop,
+            apiServer.stop,
             done
           )
         }
-      }
+      },
+      {server: "http://localhost:8888"}
     )
+
+    halp(8888)
 
   }
 )
@@ -131,12 +138,13 @@ runTest(
 
 runTest(
   "can wait for a new page",
-  ["./", "web-element", "browser-bridge", "web-site", "global-wait"],
-  function(expect, done, browse, element, BrowserBridge, Server, wait) {
+  [runTest.library.ref(), "./", "web-element", "browser-bridge", "web-site", "global-wait", "./start-server", "bridge-module"],
+  function(expect, done, lib, browserTask, element, BrowserBridge, WebSite, wait, startServer, bridgeModule) {
 
-    var server = new Server()
+    var apiServer = startServer(8888)
+    var site = new WebSite()
 
-    server.addRoute("get", "/",
+    site.addRoute("get", "/",
       function(request, response) {
         var bridge = new BrowserBridge()
 
@@ -146,28 +154,29 @@ runTest(
       }
     )
 
-    server.addRoute("get", "/maxim",
+    site.addRoute("get", "/maxim",
       function(request, response) {
         var bridge = new BrowserBridge()
-        bridge.asap(
+        bridge.domReady(
           bridge.defineFunction(
-            [wait.defineInBrowser(bridge)],
+            [bridgeModule(lib, "global-wait", bridge)],
             function(wait) {
-              var ticket = wait("start")
+              var ticket = wait.start(
+                "write to page")
               setTimeout(function() {
-                document.write("make bread not trips to the grocery store!")
-                wait("done", ticket)
+                document.body.innerHTML = "make bread not trips to the grocery store!"
+                wait.finish(ticket)
               }, 10)
             }
           )
         )
-        bridge.requestHandler()(null, response)
+        bridge.forResponse(response).send()
       }
     )
 
-    server.start(4444)
+    site.start(4444)
 
-    browse(
+    browserTask(
       "http://localhost:4444",
       function(browser) {
 
@@ -178,14 +187,27 @@ runTest(
             "body",
             /bread not trips/,
             browser.done,
-            server.stop,
-            done
+            site.stop,
+            apiServer.stop,
+            done,
           )
         }
 
-      }
+        function finish() {
+          console.log("OK everything good")
+          return
+          browser.done()
+          site.stop()
+          apiServer.stop()
+          done()
+        }
+
+      },
+      {server: "http://localhost:8888"}
     )
 
+    // done.failAfter(1000*1000)
+    halp(8888)
   }
 )
 
@@ -194,14 +216,14 @@ runTest(
 runTest.define(
   "button-server",
   ["web-element", "browser-bridge", "web-site", "make-request"],
-  function(element, BrowserBridge, Server, makeRequest) {
+  function(element, BrowserBridge, WebSite, makeRequest) {
 
     var bridge = new BrowserBridge()
 
     function ButtonStuff() {
-      var server = new Server()
+      var site = new WebSite()
 
-      server.addRoute(
+      site.addRoute(
         "get", "/slowness",
         function(request, response) {
           setTimeout(function() {
@@ -229,14 +251,14 @@ runTest.define(
         "O hai"
       )
 
-      server.addRoute("get", "/", bridge.requestHandler(butt))
+      site.addRoute("get", "/", bridge.requestHandler(butt))
 
       this.start = function(port) {
-        server.start(port)
+        site.start(port)
       }
 
       this.stop = function() {
-        server.stop()
+        site.stop()
       }
     }
 
@@ -266,9 +288,9 @@ runTest(
           var button = iframe.contentDocument.querySelector(".hai")
 
           button.click()
-          
+
           minion.wait.forIframe(iframe, function() {
-            minion.report(iframe.contentDocument.querySelector("body").innerHTML)          
+            minion.report(iframe.contentDocument.querySelector("body").innerHTML)
           })
 
         })
@@ -282,7 +304,7 @@ runTest(
       ["hi"]
     )
 
-    halp(8888, done)
+    halp(8888)
   }
 )
 
@@ -306,7 +328,7 @@ runTest(
       }
     )
 
-    halp(8888, done)
+    halp(8888)
   }
 )
 
@@ -348,12 +370,12 @@ runTest(
         function(yes) {
           expect(yes).to.match(/purd/)
           server.stop()
-          done()          
+          done()
         }
       )
     }
 
-    halp(8888, done)
+    halp(8888)
   }
 )
 
@@ -361,9 +383,9 @@ runTest(
 runTest(
   "proxying websockets",
   ["./start-server", "job-pool", "web-site", "get-socket", "browser-bridge"],
-  function(expect, done, startServer, JobPool, Server, getSocket, BrowserBridge) {
+  function(expect, done, startServer, JobPool, WebSite, getSocket, BrowserBridge) {
 
-    var booServer = new Server()
+    var booServer = new WebSite()
 
     getSocket.handleConnections(
       booServer,
@@ -382,7 +404,7 @@ runTest(
 
     var bridge = new BrowserBridge()
 
-    var sendBoo = 
+    var sendBoo =
       bridge.defineFunction(
         [getSocket.defineOn(bridge)],
         function(getSocket) {
@@ -408,7 +430,7 @@ runTest(
       function() {}
     )
 
-    halp(8888, done)
+    halp(8888)
 
     function runChecks(message) {
       expect(message).to.equal("boo!")

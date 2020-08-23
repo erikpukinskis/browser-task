@@ -171,7 +171,7 @@ module.exports = library.export(
           "border-radius": "2px",
 
           ".off": {
-            "background": "black",
+            "background": "#555",
           },
         }),
 

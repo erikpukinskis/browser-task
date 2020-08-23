@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "guarantor": "*",
-    "job-pool": "*",
+    "job-pool": "^0.18.0",
     "make-request": "^0.52.0"
   },
   "scripts": {
@@ -25,7 +25,8 @@
     "module-library": "*",
     "single-use-socket": "^0.30.0",
     "web-element": "*",
-    "web-site": "*"
+    "web-site": "*",
+    "bridge-module": "*"
   },
   "license": "ISC"
 }

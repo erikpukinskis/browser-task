@@ -154,9 +154,11 @@ module.exports = library.export(
 
           iframe.onload =
             function() {
-              minion.wait(function() {
-                minion.report(true)
-              })
+              minion.wait.forIframe(
+                iframe, function() {
+                  minion.report(true)
+                }
+              )
             }
 
           element.click()

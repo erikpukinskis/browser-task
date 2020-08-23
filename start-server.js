@@ -53,7 +53,7 @@ module.exports = library.export(
 
       function requestWork(callback, id) {
         jobPool.requestWork(
-          function(task) {
+          function runBrowserTask(task) {
             var host = host = task.options.host
 
             if (host) {
