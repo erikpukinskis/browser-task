@@ -8,6 +8,7 @@ module.exports = library.export(
     var startedPort
     var minionIds = {}
     var hostUrls = {}
+    var resignWorker = {}
 
     var site = new WebSite()
 
@@ -16,8 +17,10 @@ module.exports = library.export(
     function registerSocket(socket) {
       sockets[socket.id] = socket
     }
-    function resignSocket(socket) {
+    function resignSocket(minionId, socket) {
       delete sockets[socket.id]
+      resignWorker[minionId]()
+      delete resignWorker[minionId]
     }
 
     function start(port, jobPool) {
@@ -40,7 +43,7 @@ module.exports = library.export(
           var bridge = new BrowserBridge()
           bridge.addToHead("<title>BROWSER TASK 4000</title>")
 
-          var iframe = buildControllableIframe(site, bridge, requestWork, id, registerSocket, resignSocket)
+          var iframe = buildControllableIframe(site, bridge, requestWork, id, registerSocket, resignSocket.bind(null, id))
 
           bridge.forResponse(response).send(iframe)
         }
@@ -52,7 +55,7 @@ module.exports = library.export(
         site.sendFile(__dirname, 'favicon.ico'))
 
       function requestWork(callback, id) {
-        jobPool.requestWork(
+        resignWorker[id] = jobPool.requestWork(
           function runBrowserTask(task) {
             var host = host = task.options.host
 
