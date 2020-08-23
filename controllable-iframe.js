@@ -82,15 +82,21 @@ module.exports = library.export(
         socket.assignedTask = task
       }
 
-      bridge.domReady(
-        [socket.defineSendOn(bridge)],
-        function(send) {
-          var workRequest = JSON.stringify({__nrtvWorkRequest: "can i haz work?"})
-          send(workRequest)
+      const out = bridge.defineFunction(
+        function out(message) {
           var doc = document.querySelector("iframe.sansa").contentWindow.document
           doc.open()
-          doc.write("<html><body>Ready for work.</body></html")
+          doc.write("<html><body>"+message+"</body></html")
           doc.close()
+
+        })
+
+      bridge.domReady(
+        [socket.defineSendOn(bridge), out],
+        function(send, out) {
+          var workRequest = JSON.stringify({__nrtvWorkRequest: "can i haz work?"})
+          send(workRequest)
+          out("Ready for work.")
           document.querySelector(".blinkenlicht").classList.add("on")
         })
 
@@ -100,11 +106,18 @@ module.exports = library.export(
       var doWork = bridge.defineFunction(
         [
           socket.defineSendOn(bridge),
-          wait.defineOn(bridge)],
-        function doWork(sendSocketMessage, wait, data) {
+          wait.defineOn(bridge),
+          out],
+        function doWork(sendSocketMessage, wait, out, data) {
+          if (data == "socket hung up") {
+            document.querySelector(".blinkenlicht").classList.remove("on")
+            document.querySelector(".screen").classList.add("off")
+            document.querySelector(".blinkenlicht").classList.add("error")
+            out("Socket closed. Refresh the page!")
+            return
+          }
 
           task = JSON.parse(data)
-
           var iframe = document.querySelector(".sansa")
 
           function readyDocument(callback) {
@@ -187,8 +200,13 @@ module.exports = library.export(
         "z-index": "1",
 
         ".on": {
-          "background": "lawngreen",
-          "box-shadow": "0 0 4px 3px #c3eaff",
+          "background": "#af4",
+          "box-shadow": "0 0 4px 3px #cef",
+        },
+
+        ".error": {
+          "background": "#fda",
+          "box-shadow": "0 0 4px 3px #ffb",
         }
       }),
 

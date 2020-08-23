@@ -103,8 +103,10 @@ module.exports = library.export(
         proxySocket(socket, hostUrl)
       } else if (socketId in sockets) {
         next()
+      } else if (socketId) {
+        console.log("Got a request for socket id", socketId, "but that one is no more. Someone needs to refresh their browser.")
       } else {
-        throw new Error("Unrecognized socket connection request:", myUrl)
+        throw new Error("Unrecognized socket connection request: "+myUrl)
       }
     }
 

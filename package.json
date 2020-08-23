@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "guarantor": "*",
-    "job-pool": "^0.18.0",
+    "job-pool": "^0.19.0",
     "make-request": "^0.52.0"
   },
   "scripts": {
@@ -20,7 +20,7 @@
   "devDependencies": {
     "run-test": "*",
     "browser-bridge": "^0.168.0",
-    "get-socket": "^0.24.0",
+    "get-socket": "^0.26.0",
     "global-wait": "^0.16.0",
     "module-library": "*",
     "single-use-socket": "^0.30.0",
