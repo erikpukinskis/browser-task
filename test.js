@@ -3,13 +3,11 @@ var childProcess = require("child_process")
 
 // runTest.only("loads a page")
 // runTest.only("knows what classes an element has")
-runTest.only("can wait for a new page")
+// runTest.only("can wait for a new page")
 // runTest.only("a minion presses a button and reports back what happened")
 // runTest.only("controlling minions through the API")
 // runTest.only("retaining minions and reporting objects")
-// runTest.only("proxying websockets")
-
-runTest.failAfter(60000)
+runTest.only("proxying websockets")
 
 function halp(port) {
   childProcess.exec("open http://localhost:"+port+"/minions")
