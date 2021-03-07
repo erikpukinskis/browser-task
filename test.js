@@ -7,9 +7,11 @@ var childProcess = require("child_process")
 // runTest.only("a minion presses a button and reports back what happened")
 // runTest.only("controlling minions through the API")
 // runTest.only("retaining minions and reporting objects")
-runTest.only("proxying websockets")
+// runTest.only("proxying websockets")
+runTest.only("eval code on the client")
 
 function halp(port) {
+  // console.log("please open http://localhost:"+port+"/minions")
   childProcess.exec("open http://localhost:"+port+"/minions")
 }
 
@@ -129,6 +131,59 @@ runTest(
 
     halp(8888)
 
+  }
+)
+
+
+
+runTest(
+  "eval code on the client",
+
+  ["./", "web-site", "web-element", "browser-bridge", "./start-server", "job-pool"],
+  function(expect, done, browserTask, WebSite, element, BrowserBridge, startServer, JobPool) {
+
+    var apiServer = startServer(8888)
+    var site = new WebSite()
+    var bridge = new BrowserBridge()
+
+    site.addRoute(
+      "get",
+      "/",
+      bridge.requestHandler("hello,")
+    )
+
+    site.start(1343)
+
+    done.failAfter(1000*60*10)
+
+    var browser = browserTask("http://localhost:1343",
+      appendToBody,{
+      server: "http://localhost:8888"})
+
+    function appendToBody(browser) {
+      browser.eval(
+        function(thing, callback) {
+          var content = document.querySelector(
+            "body")
+            .innerText
+          callback(
+            content+thing)},[
+        "world"],
+        checkResponse)}
+
+    function checkResponse(value) {
+      expect(
+        value)
+        .to.equal(
+          "hello,world")
+      browser.done()
+      site.stop()
+      apiServer.stop()
+      done()
+    }
+
+
+    halp(8888)
   }
 )
 

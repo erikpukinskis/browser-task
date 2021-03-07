@@ -175,6 +175,28 @@ module.exports = library.export(
 
     }
 
+    Browser.prototype.eval =
+      function(func, args, callback) {
+
+        assertMinion(this, "eval")
+        assertRetained(this)
+
+        console.log('args are', args)
+
+        this.minion.addTask(
+          function minionEval(func, args, minion, iframe) {
+
+            args.push(function(value) {
+              minion.report(value)
+            })
+
+            iframe.contentWindow.eval("("+func+")").apply(null, args)
+          },
+          [func.toString(), args],
+          callback
+        )
+      }
+
 
     function getElementInfo(minion, selector, goal, callback) {
 
