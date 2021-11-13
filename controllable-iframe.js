@@ -26,7 +26,11 @@ module.exports = library.export(
       socket.listen(
         function(response) {
           if (response != "undefined") {
-            var object = JSON.parse(response)
+            try {
+              var object = JSON.parse(response)
+            } catch (e) {
+              throw new Error("browser-task server sent invalid work: "+response)
+            }
 
             var report = object.__nrtvMinionMessage || object
 
